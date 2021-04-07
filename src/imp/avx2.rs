@@ -13,7 +13,7 @@ mod arch {
 /// Resolves update implementation if CPU supports avx2 instructions.
 pub fn get_imp() -> Option<Adler32Imp> {
   #[cfg(all(feature = "std", target_arch = "x86_64"))]
-  if std::is_x86_feature_detected!("avx512f") {
+  if std::is_x86_feature_detected!("avx2") {
     return Some(update);
   }
 
