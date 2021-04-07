@@ -9,6 +9,11 @@ name = "adler32"
 path = "bench/adler32.rs"
 harness = false
 
+[[bench]]
+name = "compete"
+path = "bench/compete.rs"
+harness = false
+
 [features]
 default = ["std"]
 std = []
@@ -19,3 +24,7 @@ cfg-if = "1"
 [dev-dependencies]
 rand = "0.8"
 criterion = "0.3"
+
+# compition
+adler = "1.0.2"
+adler32 = "1.2.0"
