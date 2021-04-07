@@ -12,9 +12,11 @@ fn bench(c: &mut Criterion) {
 
   thread_rng().fill_bytes(&mut random[..]);
 
-  bench_group(c, "avx2-ones", &ones, imp::avx2::update);
-  bench_group(c, "avx2-zeros", &zeros, imp::avx2::update);
-  bench_group(c, "avx2-random", &random, imp::avx2::update);
+  if let Some(update) = imp::avx2::get_imp() {
+    bench_group(c, "avx2-ones", &ones, update);
+    bench_group(c, "avx2-zeros", &zeros, update);
+    bench_group(c, "avx2-random", &random, update);
+  }
 
   bench_group(c, "scalar-ones", &ones, imp::scalar::update);
   bench_group(c, "scalar-zeros", &zeros, imp::scalar::update);

@@ -1,3 +1,6 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(all(feature = "nightly", target_arch = "aarch64"), feature(stdsimd))]
+
 use imp::{get_imp, Adler32Imp};
 pub mod imp;
 
