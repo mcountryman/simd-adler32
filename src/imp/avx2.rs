@@ -5,9 +5,9 @@ use super::Adler32Imp;
 
 mod arch {
   #[cfg(target_arch = "x64")]
-  pub use std::arch::x64::*;
+  pub use core::arch::x64::*;
   #[cfg(target_arch = "x86_64")]
-  pub use std::arch::x86_64::*;
+  pub use core::arch::x86_64::*;
 }
 
 /// Resolves update implementation if CPU supports avx2 instructions.
@@ -67,9 +67,7 @@ unsafe fn update_imp(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
   b_v = modulo(b_v, MOD as _);
   b %= MOD;
 
-  // b_v = arch::_mm256_mullo_epi32(b_v, c8_v);
-
-  let mut a_v: [u32; 8] = core::mem::transmute(a_v);
+  let a_v: [u32; 8] = core::mem::transmute(a_v);
   let mut b_v: [u32; 8] = core::mem::transmute(b_v);
 
   for b_v in &mut b_v {
