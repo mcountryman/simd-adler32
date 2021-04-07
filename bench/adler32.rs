@@ -12,12 +12,16 @@ fn bench(c: &mut Criterion) {
 
   thread_rng().fill_bytes(&mut random[..]);
 
-  bench_group(c, "scalar-ones", ones, &imp::scalar::update);
-  bench_group(c, "scalar-zeros", zeros, &imp::scalar::update);
-  bench_group(c, "scalar-random", random, &imp::scalar::update);
+  bench_group(c, "scalar-ones", ones, imp::scalar::update);
+  bench_group(c, "scalar-zeros", zeros, imp::scalar::update);
+  bench_group(c, "scalar-random", random, imp::scalar::update);
+
+  bench_group(c, "ssse3-ones", ones, imp::ssse3::update);
+  bench_group(c, "ssse3-zeros", zeros, imp::ssse3::update);
+  bench_group(c, "ssse3-random", random, imp::ssse3::update);
 }
 
-fn bench_group(c: &mut Criterion, name: &str, data: [u8; 1024 * 1024], imp: &Adler32Imp) {
+fn bench_group(c: &mut Criterion, name: &str, data: [u8; 1024 * 1024], imp: Adler32Imp) {
   c.benchmark_group(name)
     .throughput(Throughput::Bytes(100))
     .bench_with_input(format!("{}-100", name), &data[..100], |b, data| {

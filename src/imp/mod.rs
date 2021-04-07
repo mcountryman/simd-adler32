@@ -1,8 +1,9 @@
 pub mod scalar;
+#[cfg(target_feature = "ssse3")]
 pub mod ssse3;
 
-pub type Adler32Imp = dyn Fn(u16, u16, &[u8]) -> (u16, u16);
+pub type Adler32Imp = fn(u16, u16, &[u8]) -> (u16, u16);
 
-pub fn get_imp() -> &'static Adler32Imp {
-  &scalar::update
+pub fn get_imp() -> Adler32Imp {
+  ssse3::update
 }

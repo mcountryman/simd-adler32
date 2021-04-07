@@ -5,7 +5,7 @@ pub mod imp;
 pub struct Adler32 {
   low: u16,
   high: u16,
-  update: &'static Adler32Imp,
+  update: Adler32Imp,
 }
 
 impl Adler32 {
