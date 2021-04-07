@@ -1,0 +1,21 @@
+[package]
+name = "simd-adler32"
+version = "0.1.0"
+edition = "2018"
+description = ""
+
+[[bench]]
+name = "adler32"
+path = "bench/adler32.rs"
+harness = false
+
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+cfg-if = "1"
+
+[dev-dependencies]
+rand = "0.8"
+criterion = "0.3"
