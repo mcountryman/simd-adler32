@@ -52,6 +52,7 @@ unsafe fn update_imp(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
   (a as u16, b as u16)
 }
 
+#[inline]
 unsafe fn update_chunk_block(a: &mut u32, b: &mut u32, chunk: &[u8]) {
   debug_assert_eq!(
     chunk.len(),
@@ -67,6 +68,7 @@ unsafe fn update_chunk_block(a: &mut u32, b: &mut u32, chunk: &[u8]) {
   *b %= MOD;
 }
 
+#[inline]
 unsafe fn update_block(a: &mut u32, b: &mut u32, chunk: &[u8]) {
   debug_assert!(
     chunk.len() <= CHUNK_SIZE,
@@ -104,6 +106,7 @@ unsafe fn reduce_add_blocks<'a>(a: &mut u32, b: &mut u32, chunk: &'a [u8]) -> &'
 
   for block in blocks {
     let block_ptr = block.as_ptr() as *const _;
+
     let left_v = _mm256_loadu_si256(block_ptr);
     let right_v = _mm256_loadu_si256(block_ptr.add(1));
 

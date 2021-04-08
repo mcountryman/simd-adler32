@@ -1,7 +1,4 @@
-use criterion::{
-  black_box, criterion_group, criterion_main, measurement::Measurement, Bencher,
-  Criterion, Throughput,
-};
+use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use rand::{thread_rng, RngCore};
 use simd_adler32::imp::{self, Adler32Imp};
 
@@ -18,9 +15,15 @@ fn bench(c: &mut Criterion) {
     bench_group(c, "avx2-random", &random, update);
   }
 
-  // bench_group(c, "scalar-ones", &ones, imp::scalar::update);
-  // bench_group(c, "scalar-zeros", &zeros, imp::scalar::update);
-  // bench_group(c, "scalar-random", &random, imp::scalar::update);
+  if let Some(update) = imp::ssse3::get_imp() {
+    bench_group(c, "ssse3-ones", &ones, update);
+    bench_group(c, "ssse3-zeros", &zeros, update);
+    bench_group(c, "ssse3-random", &random, update);
+  }
+
+  bench_group(c, "scalar-ones", &ones, imp::scalar::update);
+  bench_group(c, "scalar-zeros", &zeros, imp::scalar::update);
+  bench_group(c, "scalar-random", &random, imp::scalar::update);
 }
 
 fn bench_group(c: &mut Criterion, name: &str, data: &[u8], imp: Adler32Imp) {
