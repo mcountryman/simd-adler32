@@ -1,0 +1,22 @@
+
+[package]
+name = "simd-adler32-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2018"
+
+[dependencies]
+afl = "*"
+
+[dependencies.simd-adler32]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "avx2"
+path = "targets/avx2.rs"
+doc = false
+test = false

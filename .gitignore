@@ -2,6 +2,9 @@
 .idea/
 .vscode/
 
+# afl
+fuzz/out
+
 # cargo
 Cargo.lock
 target/
