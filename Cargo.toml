@@ -1,8 +1,9 @@
 [package]
 name = "simd-adler32"
+authors = ["Marvin Countryman <me@maar.vin>"]
 version = "0.1.0"
 edition = "2018"
-description = ""
+description = "SIMD accelerated Adler32 rolling hash."
 
 [profile.release]
 debug = true
