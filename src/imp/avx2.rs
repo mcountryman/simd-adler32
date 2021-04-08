@@ -1,14 +1,12 @@
 const MOD: u32 = 65521;
-const CHUNK_SIZE: u32 = 5552 * 4;
+const CHUNK_SIZE: usize = 5504; // 5552;
 
 use super::Adler32Imp;
 
-mod arch {
-  #[cfg(target_arch = "x64")]
-  pub use core::arch::x64::*;
-  #[cfg(target_arch = "x86_64")]
-  pub use core::arch::x86_64::*;
-}
+#[cfg(target_arch = "x64")]
+use core::arch::x64::*;
+#[cfg(target_arch = "x86_64")]
+use core::arch::x86_64::*;
 
 /// Resolves update implementation if CPU supports avx2 instructions.
 pub fn get_imp() -> Option<Adler32Imp> {
@@ -41,95 +39,90 @@ unsafe fn update_imp(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
   let mut a = a as u32;
   let mut b = b as u32;
 
-  let (data, data_remainder) = data.split_at(data.len() - data.len() % 8);
-  let chunks = data.chunks_exact(CHUNK_SIZE as _);
+  let chunks = data.chunks_exact(CHUNK_SIZE);
   let remainder = chunks.remainder();
+  for chunk in chunks {
+    update_chunk_block(&mut a, &mut b, chunk);
+  }
 
-  let mut a_v = arch::_mm256_set1_epi32(0);
+  update_block(&mut a, &mut b, remainder);
+
+  (a as u16, b as u16)
+}
+
+unsafe fn update_chunk_block(a: &mut u32, b: &mut u32, chunk: &[u8]) {
+  debug_assert!(chunk.len() < CHUNK_SIZE);
+  reduce_add_blocks(a, b, chunk);
+
+  *a %= MOD;
+  *b %= MOD;
+}
+
+unsafe fn update_block(a: &mut u32, b: &mut u32, chunk: &[u8]) {
+  let remainder = reduce_add_blocks(a, b, chunk);
+
+  for byte in remainder {
+    *a += *byte as u32;
+    *b += *a;
+  }
+
+  *a %= MOD;
+  *b %= MOD;
+}
+
+#[inline(always)]
+unsafe fn reduce_add_blocks<'a>(a: &mut u32, b: &mut u32, chunk: &'a [u8]) -> &'a [u8] {
+  let blocks = chunk.chunks_exact(64);
+  let blocks_remainder = blocks.remainder();
+
+  let mut a_v = _mm256_setzero_si256();
   let mut b_v = a_v;
 
-  for chunk in chunks {
-    accumulate(&mut a_v, &mut b_v, chunk);
+  // let one_v = _mm256_set1_epi16(1);
+  let zero_v = a_v;
+  // let weight_hi_v = get_weight_hi();
+  // let weight_lo_v = get_weight_lo();
 
-    b += CHUNK_SIZE * a;
-    a_v = modulo(a_v, MOD as _);
-    b_v = modulo(b_v, MOD as _);
-    b %= MOD;
+  for block in blocks {
+    let block_ptr = block.as_ptr() as *const _;
+    let left_v = _mm256_lddqu_si256(block_ptr);
+    let right_v = _mm256_lddqu_si256(block_ptr.add(1));
+
+    a_v = _mm256_add_epi32(a_v, _mm256_sad_epu8(left_v, zero_v));
+    a_v = _mm256_add_epi32(a_v, _mm256_sad_epu8(right_v, zero_v));
+    b_v = _mm256_add_epi32(b_v, a_v);
   }
 
-  let chunks = remainder.chunks_exact(8);
-  for chunk in chunks {
-    accumulate(&mut a_v, &mut b_v, chunk);
-  }
+  *a += reduce_add(a_v);
+  *b += reduce_add(b_v);
 
-  b += remainder.len() as u32 * a;
-  a_v = modulo(a_v, MOD as _);
-  b_v = modulo(b_v, MOD as _);
-  b %= MOD;
-
-  let a_v: [u32; 8] = core::mem::transmute(a_v);
-  let mut b_v: [u32; 8] = core::mem::transmute(b_v);
-
-  for b_v in &mut b_v {
-    *b_v *= 8;
-  }
-
-  b_v[1] += MOD - a_v[1];
-  b_v[2] += (MOD - a_v[2]) * 2;
-  b_v[3] += (MOD - a_v[3]) * 3;
-  b_v[4] += (MOD - a_v[4]) * 4;
-  b_v[5] += (MOD - a_v[5]) * 5;
-  b_v[6] += (MOD - a_v[6]) * 6;
-  b_v[7] += (MOD - a_v[7]) * 7;
-
-  for a_v in &a_v {
-    a += a_v;
-  }
-
-  for b_v in &b_v {
-    b += b_v;
-  }
-
-  for byte in data_remainder {
-    a += u32::from(*byte);
-    b += a;
-  }
-
-  ((a % MOD) as u16, (b % MOD) as u16)
+  blocks_remainder
 }
 
-#[inline]
-unsafe fn accumulate(a_v: &mut arch::__m256i, b_v: &mut arch::__m256i, chunk: &[u8]) {
-  for chunk in chunk.chunks_exact(8) {
-    let chunk = arch::_mm256_set_epi32(
-      i32::from(chunk[0]),
-      i32::from(chunk[1]),
-      i32::from(chunk[2]),
-      i32::from(chunk[3]),
-      i32::from(chunk[4]),
-      i32::from(chunk[5]),
-      i32::from(chunk[6]),
-      i32::from(chunk[7]),
-    );
+#[inline(always)]
+unsafe fn reduce_add(v: __m256i) -> u32 {
+  let sum_128 = _mm_add_epi32(_mm256_castsi256_si128(v), _mm256_extracti128_si256(v, 1));
+  let hi_64 = _mm_unpackhi_epi64(sum_128, sum_128);
+  let sum_64 = _mm_add_epi32(hi_64, sum_128);
+  let hi_32 = _mm_shuffle_epi32(sum_64, _MM_SHUFFLE(2, 3, 0, 1));
+  let sum_32 = _mm_add_epi32(sum_64, hi_32);
 
-    *a_v = arch::_mm256_add_epi32(*a_v, chunk);
-    *b_v = arch::_mm256_add_epi32(*b_v, *a_v);
-  }
+  _mm_cvtsi128_si32(sum_32) as _
 }
 
-#[inline]
-unsafe fn modulo(a: arch::__m256i, b: i32) -> arch::__m256i {
-  let a: [i32; 8] = core::mem::transmute(a);
+#[inline(always)]
+unsafe fn get_weight_hi() -> __m256i {
+  _mm256_set_epi8(
+    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
+    53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+  )
+}
 
-  arch::_mm256_set_epi32(
-    a[0] % b,
-    a[1] % b,
-    a[2] % b,
-    a[3] % b,
-    a[4] % b,
-    a[5] % b,
-    a[6] % b,
-    a[7] % b,
+#[inline(always)]
+unsafe fn get_weight_lo() -> __m256i {
+  _mm256_set_epi8(
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+    24, 25, 26, 27, 28, 29, 30, 21,
   )
 }
 
