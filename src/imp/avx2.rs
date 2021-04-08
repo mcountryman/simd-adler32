@@ -1,5 +1,7 @@
 const MOD: u32 = 65521;
-const CHUNK_SIZE: usize = 5504; // 5552;
+const NMAX: usize = 5552;
+const BLOCK_SIZE: usize = 64;
+const CHUNK_SIZE: usize = NMAX / BLOCK_SIZE * BLOCK_SIZE;
 
 use super::Adler32Imp;
 
@@ -78,23 +80,20 @@ unsafe fn update_block(a: &mut u32, b: &mut u32, chunk: &[u8]) {
     *b += *a;
   }
 
-  if *a >= MOD {
-    *a -= MOD;
-  }
-
+  *a %= MOD;
   *b %= MOD;
 }
 
 #[inline(always)]
 unsafe fn reduce_add_blocks<'a>(a: &mut u32, b: &mut u32, chunk: &'a [u8]) -> &'a [u8] {
-  if chunk.len() < 64 {
+  if chunk.len() < BLOCK_SIZE {
     return chunk;
   }
 
-  let blocks = chunk.chunks_exact(64);
+  let blocks = chunk.chunks_exact(BLOCK_SIZE);
   let blocks_remainder = blocks.remainder();
 
-  let n = CHUNK_SIZE / 64;
+  let n = CHUNK_SIZE / BLOCK_SIZE;
   let n = if n > blocks.len() {
     blocks.len() as u32
   } else {
@@ -106,7 +105,7 @@ unsafe fn reduce_add_blocks<'a>(a: &mut u32, b: &mut u32, chunk: &'a [u8]) -> &'
   let weight_hi_v = get_weight_hi();
   let weight_lo_v = get_weight_lo();
 
-  let mut p_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, (*a * n) as _);
+  let mut p_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, (*a * blocks.len() as u32) as _);
   let mut a_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0);
   let mut b_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, *b as _);
 
@@ -136,21 +135,14 @@ unsafe fn reduce_add_blocks<'a>(a: &mut u32, b: &mut u32, chunk: &'a [u8]) -> &'
 
 #[inline(always)]
 unsafe fn reduce_add(v: __m256i) -> u32 {
-  // print_m256i_u32("v", &v);
   let sum = _mm_add_epi32(_mm256_castsi256_si128(v), _mm256_extracti128_si256(v, 1));
-  // print_m128i_u32("sum", &sum);
   let hi = _mm_unpackhi_epi64(sum, sum);
-  // print_m128i_u32("hi", &hi);
 
   let sum = _mm_add_epi32(hi, sum);
-  // print_m128i_u32("sum", &sum);
   let hi = _mm_shuffle_epi32(sum, _MM_SHUFFLE(2, 3, 0, 1));
-  // print_m128i_u32("hi", &hi);
 
   let sum = _mm_add_epi32(sum, hi);
-  // print_m128i_u32("sum", &sum);
   let sum = _mm_cvtsi128_si32(sum) as _;
-  // println!("sum: {}", sum);
 
   sum
 }
@@ -158,37 +150,17 @@ unsafe fn reduce_add(v: __m256i) -> u32 {
 #[inline(always)]
 unsafe fn get_weight_lo() -> __m256i {
   _mm256_set_epi8(
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-    24, 25, 26, 27, 28, 29, 30, 31,
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+    24, 25, 26, 27, 28, 29, 30, 31, 32,
   )
 }
 
 #[inline(always)]
 unsafe fn get_weight_hi() -> __m256i {
   _mm256_set_epi8(
-    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
-    53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+    33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+    54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
   )
-}
-
-unsafe fn print_m256i_u32(s: &str, v: &__m256i) {
-  let v: [u32; 8] = core::mem::transmute(*v);
-  println!("{}: {:?}", s, v);
-}
-
-unsafe fn print_m128i_u16(s: &str, v: &__m128i) {
-  let v: [u16; 8] = core::mem::transmute(*v);
-  println!("{}: {:?}", s, v);
-}
-
-unsafe fn print_m128i_u32(s: &str, v: &__m128i) {
-  let v: [u32; 4] = core::mem::transmute(*v);
-  println!("{}: {:?}", s, v);
-}
-
-unsafe fn print_m128i_u64(s: &str, v: &__m128i) {
-  let v: [u64; 2] = core::mem::transmute(*v);
-  println!("{}: {:?}", s, v);
 }
 
 #[cfg(test)]
