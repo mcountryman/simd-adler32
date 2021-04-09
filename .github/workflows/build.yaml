@@ -77,35 +77,35 @@ jobs:
         run: |
           cargo test --target ${{ matrix.target }}
 
-    test-cross:
-      runs-on: ${{ matrix.os }}
-      strategy:
-        fail-fast: false
-        matrix:
-          include:
-            - os: ubuntu-latest
-              target: mips-unknown-linux-gnu
-              toolchain: stable
+  test-cross:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: mips-unknown-linux-gnu
+            toolchain: stable
 
-      steps:
-        - uses: actions/checkout@v2
-        - name: Install toolchain
-          uses: actions-rs/toolchain@v1
-          with:
-            profile: minimal
-            target: ${{ matrix.target }}
-            toolchain: ${{ matrix.toolchain }}
-            override: true
-        - name: Cache cargo plugins
-          uses: actions/cache@v1
-          with:
-            path: ~/.cargo/bin/
-            key: ${{ runner.os }}-cargo-plugins
-        - name: Install cross
-          run: cargo install cross || true
-        - name: Test
-          run: |
-            cross test --no-fail-fast --target ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: ${{ matrix.target }}
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+      - name: Cache cargo plugins
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-plugins
+      - name: Install cross
+        run: cargo install cross || true
+      - name: Test
+        run: |
+          cross test --no-fail-fast --target ${{ matrix.target }}
 
   test-no-std:
     runs-on: ubuntu-latest
