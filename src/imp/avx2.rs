@@ -43,7 +43,7 @@ mod imp {
   const BLOCK_SIZE: usize = 32;
   const CHUNK_SIZE: usize = NMAX / BLOCK_SIZE * BLOCK_SIZE;
 
-  #[cfg(target_arch = "x84")]
+  #[cfg(target_arch = "x86")]
   use core::arch::x86::*;
   #[cfg(target_arch = "x86_64")]
   use core::arch::x86_64::*;
