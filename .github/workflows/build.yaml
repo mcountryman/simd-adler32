@@ -55,36 +55,6 @@ jobs:
             target: x86_64-unknown-linux-gnu
             toolchain: nightly
             variant: minimal_versions
-  steps:
-    - uses: actions/checkout@v2
-    - name: Install toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        target: ${{ matrix.target }}
-        toolchain: ${{ matrix.toolchain }}
-        override: true
-    - run: ${{ matrix.deps }}
-    - name: Maybe minimal versions
-      if: ${{ matrix.variant == 'minimal_versions' }}
-      run: cargo generate-lockfile -Z minimal-versions
-    - name: Test nightly
-      if: ${{ matrix.toolchain == 'nightly' }}
-      run: |
-        cargo test --target ${{ matrix.target }} --features=nightly
-    - name: Test
-      run: |
-        cargo test --target ${{ matrix.target }}
-
-  test-cross:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: mips-unknown-linux-gnu
-            toolchain: stable
 
     steps:
       - uses: actions/checkout@v2
@@ -95,16 +65,47 @@ jobs:
           target: ${{ matrix.target }}
           toolchain: ${{ matrix.toolchain }}
           override: true
-      - name: Cache cargo plugins
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-plugins
-      - name: Install cross
-        run: cargo install cross || true
+      - run: ${{ matrix.deps }}
+      - name: Maybe minimal versions
+        if: ${{ matrix.variant == 'minimal_versions' }}
+        run: cargo generate-lockfile -Z minimal-versions
+      - name: Test nightly
+        if: ${{ matrix.toolchain == 'nightly' }}
+        run: |
+          cargo test --target ${{ matrix.target }} --features=nightly
       - name: Test
         run: |
-          cross test --no-fail-fast --target ${{ matrix.target }}
+          cargo test --target ${{ matrix.target }}
+
+    test-cross:
+      runs-on: ${{ matrix.os }}
+      strategy:
+        fail-fast: false
+        matrix:
+          include:
+            - os: ubuntu-latest
+              target: mips-unknown-linux-gnu
+              toolchain: stable
+
+      steps:
+        - uses: actions/checkout@v2
+        - name: Install toolchain
+          uses: actions-rs/toolchain@v1
+          with:
+            profile: minimal
+            target: ${{ matrix.target }}
+            toolchain: ${{ matrix.toolchain }}
+            override: true
+        - name: Cache cargo plugins
+          uses: actions/cache@v1
+          with:
+            path: ~/.cargo/bin/
+            key: ${{ runner.os }}-cargo-plugins
+        - name: Install cross
+          run: cargo install cross || true
+        - name: Test
+          run: |
+            cross test --no-fail-fast --target ${{ matrix.target }}
 
   test-no-std:
     runs-on: ubuntu-latest
