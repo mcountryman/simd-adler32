@@ -63,7 +63,9 @@
 //!
 //! Feature detection tries to use the fastest supported feature first.
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(feature = "nightly", feature(specialization))]
+
+#[cfg(feature = "std")]
+extern crate std;
 
 #[doc(hidden)]
 pub mod hash;
