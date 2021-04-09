@@ -22,7 +22,7 @@ pub fn get_imp() -> Option<Adler32Imp> {
 mod imp {
   const MOD: u32 = 65521;
   const NMAX: usize = 5552;
-  const BLOCK_SIZE: usize = 64;
+  const BLOCK_SIZE: usize = 32;
   const CHUNK_SIZE: usize = NMAX / BLOCK_SIZE * BLOCK_SIZE;
 
   #[cfg(target_arch = "x84")]
@@ -96,8 +96,7 @@ mod imp {
 
     let one_v = _mm256_set1_epi16(1);
     let zero_v = _mm256_set1_epi16(0);
-    let weight_hi_v = get_weight_hi();
-    let weight_lo_v = get_weight_lo();
+    let weights = get_weights();
 
     let mut p_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, (*a * blocks.len() as u32) as _);
     let mut a_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0);
@@ -105,22 +104,16 @@ mod imp {
 
     for block in blocks {
       let block_ptr = block.as_ptr() as *const _;
-
-      let left_v = _mm256_loadu_si256(block_ptr);
-      let right_v = _mm256_loadu_si256(block_ptr.add(1));
+      let block = _mm256_loadu_si256(block_ptr);
 
       p_v = _mm256_add_epi32(p_v, a_v);
 
-      a_v = _mm256_add_epi32(a_v, _mm256_sad_epu8(left_v, zero_v));
-      let mad = _mm256_maddubs_epi16(left_v, weight_hi_v);
-      b_v = _mm256_add_epi32(b_v, _mm256_madd_epi16(mad, one_v));
-
-      a_v = _mm256_add_epi32(a_v, _mm256_sad_epu8(right_v, zero_v));
-      let mad = _mm256_maddubs_epi16(right_v, weight_lo_v);
+      a_v = _mm256_add_epi32(a_v, _mm256_sad_epu8(block, zero_v));
+      let mad = _mm256_maddubs_epi16(block, weights);
       b_v = _mm256_add_epi32(b_v, _mm256_madd_epi16(mad, one_v));
     }
 
-    b_v = _mm256_add_epi32(b_v, _mm256_slli_epi32(p_v, 6));
+    b_v = _mm256_add_epi32(b_v, _mm256_slli_epi32(p_v, 5));
 
     *a += reduce_add(a_v);
     *b = reduce_add(b_v);
@@ -143,18 +136,10 @@ mod imp {
   }
 
   #[inline(always)]
-  unsafe fn get_weight_lo() -> __m256i {
+  unsafe fn get_weights() -> __m256i {
     _mm256_set_epi8(
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
       24, 25, 26, 27, 28, 29, 30, 31, 32,
-    )
-  }
-
-  #[inline(always)]
-  unsafe fn get_weight_hi() -> __m256i {
-    _mm256_set_epi8(
-      33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-      54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
     )
   }
 }
