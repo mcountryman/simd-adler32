@@ -27,8 +27,8 @@ fn bench(c: &mut Criterion) {
       b.iter(|| {
         let mut adler = simd_adler32::Adler32::new();
 
-        adler.update(data);
-        adler.finalize()
+        adler.write(data);
+        adler.finish()
       })
     });
 
@@ -54,8 +54,8 @@ fn bench(c: &mut Criterion) {
       b.iter(|| {
         let mut adler = simd_adler32::Adler32::new();
 
-        adler.update(data);
-        adler.finalize()
+        adler.write(data);
+        adler.finish()
       })
     });
 }

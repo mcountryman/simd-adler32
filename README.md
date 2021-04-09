@@ -36,8 +36,8 @@ simd-adler32 = "*"
 use simd_adler32::Adler32;
 
 let mut adler = Adler32::new();
-adler.update(b"rust is pretty cool, man");
-let hash = adler.finalize();
+adler.write(b"rust is pretty cool, man");
+let hash = adler.finish();
 
 println!("{}", hash);
 // 1921255656
@@ -45,13 +45,13 @@ println!("{}", hash);
 
 ## Support
 
-| supported          | arch             | feature |
-| ------------------ | ---------------- | ------- |
-| :construction:     | `x86`, `x86_64`  | avx512  |
-| :white_check_mark: | `x86`, `x86_64`  | avx2    |
-| :white_check_mark: | `x86`, `x86_64`  | ssse3   |
-| :construction:     | `arm`, `aarch64` | neon    |
-|                    | `wasm32`         | simd128 |
+| impl | arch             | feature |
+| ---- | ---------------- | ------- |
+| 🚧   | `x86`, `x86_64`  | avx512  |
+| ✅   | `x86`, `x86_64`  | avx2    |
+| ✅   | `x86`, `x86_64`  | ssse3   |
+| 🚧   | `arm`, `aarch64` | neon    |
+|      | `wasm32`         | simd128 |
 
 ## Performance
 

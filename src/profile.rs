@@ -3,6 +3,7 @@ use std::time::Instant;
 
 const DURATION_MS: u128 = 10_000;
 
+#[cfg(not(tarpaulin_include))]
 fn main() {
   let imp = std::env::args()
     .nth(1)
