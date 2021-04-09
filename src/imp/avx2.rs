@@ -2,19 +2,34 @@ use super::Adler32Imp;
 
 /// Resolves update implementation if CPU supports avx2 instructions.
 pub fn get_imp() -> Option<Adler32Imp> {
-  #[cfg(all(feature = "std", target_arch = "x86"))]
+  get_imp_inner()
+}
+
+#[inline]
+#[cfg(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))]
+fn get_imp_inner() -> Option<Adler32Imp> {
   if std::is_x86_feature_detected!("avx2") {
-    return Some(imp::update);
+    Some(imp::update)
+  } else {
+    None
   }
+}
 
-  #[cfg(all(feature = "std", target_arch = "x86_64"))]
-  if std::is_x86_feature_detected!("avx2") {
-    return Some(imp::update);
-  }
+#[inline]
+#[cfg(all(
+  target_feature = "avx2",
+  not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
+))]
+fn get_imp_inner() -> Option<Adler32Imp> {
+  Some(imp::update)
+}
 
-  #[cfg(target_feature = "avx2")]
-  return Some(imp::update);
-
+#[inline]
+#[cfg(all(
+  not(target_feature = "avx2"),
+  not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
+))]
+fn get_imp_inner() -> Option<Adler32Imp> {
   None
 }
 
@@ -173,7 +188,7 @@ mod tests {
 
   #[test]
   fn random() {
-    let mut random = vec![0; 1024 * 1024];
+    let mut random = [0; 1024 * 1024];
     rand::thread_rng().fill(&mut random[..]);
 
     assert_sum_eq(&random[..1]);
@@ -189,10 +204,12 @@ mod tests {
   }
 
   fn assert_sum_eq(data: &[u8]) {
-    let (a, b) = super::imp::update(1, 0, data);
-    let left = u32::from(b) << 16 | u32::from(a);
-    let right = adler::adler32_slice(data);
+    if let Some(update) = super::get_imp() {
+      let (a, b) = update(1, 0, data);
+      let left = u32::from(b) << 16 | u32::from(a);
+      let right = adler::adler32_slice(data);
 
-    assert_eq!(left, right, "len({})", data.len());
+      assert_eq!(left, right, "len({})", data.len());
+    }
   }
 }
