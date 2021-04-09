@@ -18,7 +18,10 @@ pub fn get_imp() -> Option<Adler32Imp> {
   None
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(
+  any(target_arch = "x86", target_arch = "x86_64"),
+  any(feature = "std", target_feature = "avx2")
+))]
 mod imp {
   const MOD: u32 = 65521;
   const NMAX: usize = 5552;

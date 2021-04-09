@@ -18,6 +18,7 @@ impl Adler32Hash for &str {
   }
 }
 
+#[cfg(feature = "std")]
 impl Adler32Hash for Vec<u8> {
   fn hash(&self) -> u32 {
     let mut hash = Adler32::new();
