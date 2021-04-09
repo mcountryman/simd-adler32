@@ -3,7 +3,7 @@
   <a href="https://docs.rs/simd-adler32">
     <img alt="docs.rs badge" src="https://img.shields.io/docsrs/simd-adler32?style=flat-square">
   </a>
-  <a href="https://bundlephobia.com/result?p=geotab-rx@latest">
+  <a href="https://crates.io/crates/simd-adler32">
     <img alt="crates.io badge" src="https://img.shields.io/crates/v/simd-adler32?style=flat-square">
   </a>
   <a href="https://github.com/mcountryman/simd-adler32/blob/main/LICENSE.md">
