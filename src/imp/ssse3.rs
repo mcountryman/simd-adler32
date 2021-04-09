@@ -129,7 +129,7 @@ mod imp {
   unsafe fn reduce_add(v: __m128i) -> u32 {
     let hi = _mm_unpackhi_epi64(v, v);
     let sum = _mm_add_epi32(hi, v);
-    let hi = _mm_shuffle_epi32(sum, super::_MM_SHUFFLE(2, 3, 0, 1));
+    let hi = _mm_shuffle_epi32(sum, crate::imp::_MM_SHUFFLE(2, 3, 0, 1));
 
     let sum = _mm_add_epi32(sum, hi);
     let sum = _mm_cvtsi128_si32(sum) as _;
