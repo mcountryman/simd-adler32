@@ -1,9 +1,11 @@
 [package]
 name = "simd-adler32"
 authors = ["Marvin Countryman <me@maar.vin>"]
+license = "MIT"
 version = "0.1.0"
 edition = "2018"
-description = "SIMD accelerated Adler32 rolling hash."
+repository = "https://github.com/mcountryman/simd-adler32"
+description = "A SIMD-accelerated Adler-32 rolling hash algorithm implementation."
 
 [profile.release]
 debug = true
@@ -31,6 +33,6 @@ std = []
 rand = "0.8"
 criterion = "0.3"
 
-# compition
+# competition
 adler = "1.0.2"
 adler32 = "1.2.0"
