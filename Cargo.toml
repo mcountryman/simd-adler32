@@ -27,9 +27,6 @@ harness = false
 default = ["std"]
 std = []
 
-[dependencies]
-cfg-if = "1"
-
 [dev-dependencies]
 rand = "0.8"
 criterion = "0.3"

@@ -13,12 +13,13 @@
 
 A SIMD-accelerated Adler-32 rolling hash algorithm implementation.
 
-## Goals
+## Features
 
+- No dependencies
 - Support `no_std` (with `default-features = false`)
 - Runtime CPU feature detection (when `std` enabled)
-- Single `cfg_if` dependency
-- Blazing fast performance on as many targets as possible
+- Blazing fast performance on as many targets as possible (currently only x86 and x86_64)
+- Default to scalar implementation when simd not available
 
 ## Quick start
 
@@ -59,6 +60,17 @@ comparison are [adler](https://crates.io/crates/adler) and
 | 100k/simd-adler32 \* | 2.7951 us | 33.320 GiB/s |
 | 100k/adler32         | 48.488 us | 1.9207 GiB/s |
 | 100k/adler           | 178.36 us | 534.69 MiB/s |
+
+> MacBookPro16,1 - Intel i9-9880H CPU @ 2.30GHz
+
+| name                 | avg. time | avg. thrpt   |
+| -------------------- | --------- | ------------ |
+| 10k/simd-adler32 \*  | 200.37 ns | 46.480 GiB/s |
+| 10k/adler32          | 4.1516 us | 2.2433 GiB/s |
+| 10k/adler            | 10.220 us | 933.15 MiB/s |
+| 100k/simd-adler32 \* | 2.3282 us | 40.003 GiB/s |
+| 100k/adler32         | 41.130 us | 2.2643 GiB/s |
+| 100k/adler           | 83.776 us | 534.69 MiB/s |
 
 ## Safety
 
