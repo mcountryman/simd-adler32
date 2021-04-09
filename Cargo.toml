@@ -14,10 +14,6 @@ exclude = ["bench"]
 debug = true
 opt-level = 2
 
-[[bin]]
-name = "profile"
-path = "src/profile.rs"
-
 [[bench]]
 name = "adler32"
 path = "bench/adler32.rs"
