@@ -95,7 +95,7 @@ for simd intrinsics. Fuzzing is done on release and debug builds prior to publis
 
 ## Credits
 
-Thank you to the contributors and contributors of the following projects.
+Thank you to the contributors of the following projects.
 
 - [adler](https://github.com/jonas-schievink/adler)
 - [adler32](https://github.com/remram44/adler32-rs)
