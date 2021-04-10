@@ -44,13 +44,19 @@
 //!
 //! ## Support
 //!
+//! **MSRV** `1.35.0`
+//!
+//! Minimum supported rust version is tested before a new version is published.
+//!
+//! **CPU Features**
+//!
 //! | impl | arch             | feature |
 //! | ---- | ---------------- | ------- |
-//! | 🚧  | `x86`, `x86_64`  | avx512  |
-//! | ✅  | `x86`, `x86_64`  | avx2    |
-//! | ✅  | `x86`, `x86_64`  | ssse3   |
-//! | 🚧  | `arm`, `aarch64` | neon    |
-//! |     | `wasm32`         | simd128 |
+//! | 🚧   | `x86`, `x86_64`  | avx512  |
+//! | ✅   | `x86`, `x86_64`  | avx2    |
+//! | ✅   | `x86`, `x86_64`  | ssse3   |
+//! | 🚧   | `arm`, `aarch64` | neon    |
+//! |      | `wasm32`         | simd128 |
 //!
 //! ## CPU Feature Detection
 //! simd-adler32 supports both runtime and compile time CPU feature detection using the
