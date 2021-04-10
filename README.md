@@ -93,6 +93,17 @@ This crate contains a significant amount of `unsafe` code due to the requirement
 for simd intrinsics. Fuzzing is done on release and debug builds prior to publishing via
 `afl`. Fuzzy tests can be found under [fuzz](/fuzz) the directory.
 
+## Credits
+
+Thank you to the contributors and contributors of the following projects.
+
+- [adler](https://github.com/jonas-schievink/adler)
+- [adler32](https://github.com/remram44/adler32-rs)
+- [crc32fast](https://github.com/srijs/rust-crc32fast)
+- [wuffs](https://github.com/google/wuffs)
+- [chromium](https://bugs.chromium.org/p/chromium/issues/detail?id=762564)
+- [zlib](https://zlib.net/)
+
 ## Contributing
 
 Feel free to submit a issue or pull request. :smile:
