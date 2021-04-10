@@ -69,7 +69,6 @@ by updating your dependency definition to the following.
 
 ```toml
 [dependencies]
-...
 simd-adler32 = { version "*", default-features = false, features = ["std"] }
 ```
 
