@@ -1,5 +1,6 @@
 pub mod avx2;
 pub mod scalar;
+pub mod sse2;
 pub mod ssse3;
 
 pub type Adler32Imp = fn(u16, u16, &[u8]) -> (u16, u16);
@@ -13,5 +14,6 @@ pub const fn _MM_SHUFFLE(z: u32, y: u32, x: u32, w: u32) -> i32 {
 pub fn get_imp() -> Adler32Imp {
   avx2::get_imp()
     .or_else(ssse3::get_imp)
+    .or_else(sse2::get_imp)
     .unwrap_or(scalar::update)
 }

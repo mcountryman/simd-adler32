@@ -21,6 +21,12 @@ fn bench(c: &mut Criterion) {
     bench_group(c, "ssse3-random", &random, update);
   }
 
+  if let Some(update) = imp::sse2::get_imp() {
+    bench_group(c, "sse2-ones", &ones, update);
+    bench_group(c, "sse2-zeros", &zeros, update);
+    bench_group(c, "sse2-random", &random, update);
+  }
+
   bench_group(c, "scalar-ones", &ones, imp::scalar::update);
   bench_group(c, "scalar-zeros", &zeros, imp::scalar::update);
   bench_group(c, "scalar-random", &random, imp::scalar::update);
