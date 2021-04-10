@@ -114,7 +114,7 @@ jobs:
           target: x86_64-unknown-linux-gnu
           toolchain: 1.36.0 # MSRV
       - name: Test
-        run: cargo test --no-default-features --features=std
+        run: cargo test --target=x86_64-unknown-linux-gnu --no-default-features --features=std
 
   test-no-std:
     runs-on: ubuntu-latest
