@@ -45,9 +45,6 @@ jobs:
             toolchain: beta
             # Test both windows-gnu and windows-msvc; use beta rust on one
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            toolchain: 1.36.0 # MSRV
-          - os: ubuntu-latest
             deps: sudo apt-get update ; sudo apt install gcc-multilib
             target: i686-unknown-linux-gnu
             toolchain: nightly
@@ -106,6 +103,18 @@ jobs:
       - name: Test
         run: |
           cross test --no-fail-fast --target ${{ matrix.target }}
+
+  test-msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          target: x86_64-unknown-linux-gnu
+          toolchain: 1.36.0 # MSRV
+      - name: Test
+        run: cargo test --no-default-features --features=std
 
   test-no-std:
     runs-on: ubuntu-latest
