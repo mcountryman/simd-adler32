@@ -42,11 +42,12 @@
 //!
 //! Enables nightly features required for avx512 support.
 //!
+//! * `const-generics` - Enabled by default
+//!
+//! Enables const-generics support allowing for user-defined array hashing by value.  See
+//! [`Adler32Hash`] for details.
+//!
 //! ## Support
-//!
-//! **MSRV** `1.35.0`
-//!
-//! Minimum supported rust version is tested before a new version is published.
 //!
 //! **CPU Features**
 //!
@@ -55,8 +56,15 @@
 //! | 🚧   | `x86`, `x86_64`  | avx512  |
 //! | ✅   | `x86`, `x86_64`  | avx2    |
 //! | ✅   | `x86`, `x86_64`  | ssse3   |
+//! | 🚧   | `x86`, `x86_64`  | sse2    |
 //! | 🚧   | `arm`, `aarch64` | neon    |
 //! |      | `wasm32`         | simd128 |
+//!
+//! **MSRV** `1.36.0`\*\*
+//!
+//! Minimum supported rust version is tested before a new version is published. [**] Feature
+//! `const-generics` needs to disabled to build on rustc versions `<1.51` which can be done
+//! by updating your dependency definition to the following.
 //!
 //! ## CPU Feature Detection
 //! simd-adler32 supports both runtime and compile time CPU feature detection using the

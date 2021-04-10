@@ -18,12 +18,23 @@ impl Adler32Hash for &str {
   }
 }
 
+#[cfg(feature = "const-generics")]
+impl<const SIZE: usize> Adler32Hash for [u8; SIZE] {
+  fn hash(&self) -> u32 {
+    let mut hash = Adler32::new();
+
+    hash.write(self);
+    hash.finish()
+  }
+}
+
 macro_rules! array_impl {
   ($s:expr, $($size:expr),+) => {
     array_impl!($s);
     $(array_impl!{$size})*
   };
   ($size:expr) => {
+    #[cfg(not(feature = "const-generics"))]
     impl Adler32Hash for [u8; $size] {
       fn hash(&self) -> u32 {
         let mut hash = Adler32::new();

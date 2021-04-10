@@ -25,9 +25,10 @@ path = "bench/compete.rs"
 harness = false
 
 [features]
-default = ["std"]
+default = ["std", "const-generics"]
 std = []
 nightly = []
+const-generics = []
 
 [dev-dependencies]
 rand = "0.8"
