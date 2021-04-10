@@ -48,6 +48,12 @@ println!("{}", hash);
 
 ## Support
 
+**MSRV** `1.35.0`
+
+Minimum supported rust version is tested before a new version is published.
+
+**CPU Features**
+
 | impl | arch             | feature |
 | ---- | ---------------- | ------- |
 | 🚧   | `x86`, `x86_64`  | avx512  |
