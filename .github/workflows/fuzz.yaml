@@ -1,0 +1,49 @@
+name: fuzz
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: fuzz
+
+jobs:
+  fuzz:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        target: [avx2, avx512, sse2, ssse3]
+        profile: [debug, release]
+        toolchain: [stable, nightly]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - run: cargo install afl
+
+      - name: Build
+        run: |
+          cargo afl build \
+            --bin ${{ matrix.target }}
+            ${{ matrix.profile == 'release' && '--release '}} \
+            ${{ matrix.toolchain == 'nightly' && '--features=nightly' }}
+
+      - name: fuzz
+        run: |
+          cargo afl fuzz -t 60 -i in -o report target/${{ matrix.profile }}/${{ matrix.target }}
+
+      - name: archive report
+        uses: actions/upload-artifact@v2
+        with:
+          name: report
+          path: report
