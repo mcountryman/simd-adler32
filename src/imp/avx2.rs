@@ -113,11 +113,11 @@ mod imp {
     let blocks_remainder = blocks.remainder();
 
     let one_v = _mm256_set1_epi16(1);
-    let zero_v = _mm256_set1_epi16(0);
+    let zero_v = _mm256_setzero_si256();
     let weights = get_weights();
 
     let mut p_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, (*a * blocks.len() as u32) as _);
-    let mut a_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0);
+    let mut a_v = _mm256_setzero_si256();
     let mut b_v = _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, *b as _);
 
     for block in blocks {
