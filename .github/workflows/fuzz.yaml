@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        target: [avx2, avx512, sse2, ssse3]
+        target: [avx2, sse2, ssse3]
 
     steps:
       - uses: actions/checkout@v2
@@ -35,7 +35,7 @@ jobs:
 
       - name: fuzz
         run: |
-          cargo afl fuzz -t 60 -i in -o report target/release/${{ matrix.target }}
+          cargo afl fuzz -V 60 -i in -o report target/release/${{ matrix.target }}
         env:
           AFL_SKIP_CPUFREQ: 1
           AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES: 1
