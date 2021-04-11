@@ -3,11 +3,17 @@ use rand::{thread_rng, RngCore};
 use simd_adler32::imp::{self, Adler32Imp};
 
 fn bench(c: &mut Criterion) {
-  let ones = vec![1; 100_000];
-  let zeros = vec![0; 100_000];
-  let mut random = vec![0; 100_000];
+  let ones = [1; 100_000];
+  let zeros = [0; 100_000];
+  let mut random = [0; 100_000];
 
   thread_rng().fill_bytes(&mut random[..]);
+
+  if let Some(update) = imp::avx512::get_imp() {
+    bench_group(c, "avx512-ones", &ones, update);
+    bench_group(c, "avx512-zeros", &zeros, update);
+    bench_group(c, "avx512-random", &random, update);
+  }
 
   if let Some(update) = imp::avx2::get_imp() {
     bench_group(c, "avx2-ones", &ones, update);
