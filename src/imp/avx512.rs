@@ -15,7 +15,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
   let has_avx512f = std::is_x86_feature_detected!("avx512f");
   let has_avx512bw = std::is_x86_feature_detected!("avx512bw");
 
-  if has_avx_512f && has_avx512bw {
+  if has_avx512f && has_avx512bw {
     Some(imp::update)
   } else {
     None
