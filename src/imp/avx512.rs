@@ -1,6 +1,6 @@
 use super::Adler32Imp;
 
-/// Resolves update implementation if CPU supports avx2 instructions.
+/// Resolves update implementation if CPU supports avx512f and avx512bw instructions.
 pub fn get_imp() -> Option<Adler32Imp> {
   get_imp_inner()
 }
@@ -12,7 +12,10 @@ pub fn get_imp() -> Option<Adler32Imp> {
   any(target_arch = "x86", target_arch = "x86_64")
 ))]
 fn get_imp_inner() -> Option<Adler32Imp> {
-  if std::is_x86_feature_detected!("avx2") {
+  let has_avx512f = std::is_x86_feature_detected!("avx512f");
+  let has_avx512bw = std::is_x86_feature_detected!("avx512bw");
+
+  if has_avx_512f && has_avx512bw {
     Some(imp::update)
   } else {
     None
