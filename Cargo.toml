@@ -2,7 +2,7 @@
 name = "simd-adler32"
 authors = ["Marvin Countryman <me@maar.vin>"]
 license = "MIT"
-version = "0.3.1"
+version = "0.3.2-alpha.0"
 edition = "2018"
 keywords = ["simd", "avx2", "ssse3", "adler", "adler32"]
 categories = ["algorithms", "no-std"]
