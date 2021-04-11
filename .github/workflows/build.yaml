@@ -69,9 +69,7 @@ jobs:
 
       - name: Test
         run: |
-          cargo test --lib \
-            --target ${{ matrix.target }} \
-            ${{ matrix.toolchain == 'nightly' && '--features=nightly' || '' }}
+          cargo test --lib --target ${{ matrix.target }} ${{ matrix.toolchain == 'nightly' && '--features=nightly' || '' }}
 
         env:
           # Enables address sanitization if supported target and nightly.
