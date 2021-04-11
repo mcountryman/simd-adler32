@@ -35,7 +35,7 @@ jobs:
 
       - name: fuzz
         run: |
-          cargo afl fuzz -V 60 -i in -o report target/release/${{ matrix.target }}
+          cargo afl fuzz -V 10 -i in -o report target/release/${{ matrix.target }}
         env:
           AFL_SKIP_CPUFREQ: 1
           AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES: 1
@@ -44,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: report
-          path: report
+          path: fuzz/report
