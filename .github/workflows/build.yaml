@@ -66,15 +66,32 @@ jobs:
       - name: Maybe minimal versions
         if: ${{ matrix.variant == 'minimal_versions' }}
         run: cargo generate-lockfile -Z minimal-versions
-      - name: Test nightly
-        if: ${{ matrix.toolchain == 'nightly' }}
-        run: |
-          cargo test --lib --target ${{ matrix.target }} --features=nightly
-        env:
-          RUSTFLAGS: -Z sanitizer=address
+
       - name: Test
         run: |
-          cargo test --target ${{ matrix.target }}
+          cargo test --lib \
+            --target ${{ matrix.target }} \
+            ${{ matrix.toolchain == 'nightly' && '--features=nightly' || '' }}
+
+        env:
+          # Enables address sanitization if supported target and nightly.
+          RUSTFLAGS: |
+            ${{ 
+              (
+                matrix.toolchain == 'nightly' &&
+                [
+                  'aarch64-apple-darwin',
+                  'aarch64-fuchsia',
+                  'aarch64-unknown-linux-gnu',
+                  'x86_64-apple-darwin',
+                  'x86_64-fuchsia',
+                  'x86_64-unknown-freebsd',
+                  'x86_64-unknown-linux-gnu',
+                ].includes(matrix.target) 
+              )
+                && '-Z sanitizer=address'
+                || ''
+            }}
 
   test-cross:
     runs-on: ${{ matrix.os }}
