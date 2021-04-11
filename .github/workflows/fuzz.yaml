@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Install toolchain
+      - name: setup
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -30,7 +30,7 @@ jobs:
 
       - run: cargo install afl
 
-      - name: Build
+      - name: build
         run: |
           cargo afl build \
             --bin ${{ matrix.target }} \
