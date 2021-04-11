@@ -69,7 +69,9 @@ jobs:
       - name: Test nightly
         if: ${{ matrix.toolchain == 'nightly' }}
         run: |
-          cargo test --target ${{ matrix.target }} --features=nightly
+          cargo test --lib --target ${{ matrix.target }} --features=nightly
+        env:
+          RUSTFLAGS: -Z sanitizer=address
       - name: Test
         run: |
           cargo test --target ${{ matrix.target }}
