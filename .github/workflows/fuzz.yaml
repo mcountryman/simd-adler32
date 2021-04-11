@@ -33,7 +33,7 @@ jobs:
       - name: Build
         run: |
           cargo afl build \
-            --bin ${{ matrix.target }}
+            --bin ${{ matrix.target }} \
             ${{ matrix.profile == 'release' && '--release '}}
 
       - name: fuzz
