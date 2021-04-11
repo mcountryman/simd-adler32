@@ -34,7 +34,7 @@ jobs:
         run: |
           cargo afl build \
             --bin ${{ matrix.target }} \
-            ${{ matrix.profile == 'release' && '--release '}}
+            ${{ matrix.profile == 'release' ? '--release ' : '' }}
 
       - name: fuzz
         run: |
