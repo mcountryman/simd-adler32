@@ -163,9 +163,8 @@ mod imp {
     let hi = _mm_shuffle_epi32(sum, crate::imp::_MM_SHUFFLE(2, 3, 0, 1));
 
     let sum = _mm_add_epi32(sum, hi);
-    let sum = _mm_cvtsi128_si32(sum) as _;
 
-    sum
+    _mm_cvtsi128_si32(sum) as _
   }
 
   #[inline(always)]
