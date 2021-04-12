@@ -7,13 +7,21 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
-        - run: |
-            git config user.name "GitHub Actions"
-            git config user.email noreply@github.com
-        - uses: actions-rs/install@v0.1
-          with:
-            crate: cargo-release
-            version: latest
-        - run: cargo release --dry-run
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure git user
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+
+      - name: Install cargo-release
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-release
+          version: latest
+
+      - name: Publish
+        run: |
+          cargo login ${{ secrets.CRATES_IO_TOKEN }}
+          cargo release --dry-run
