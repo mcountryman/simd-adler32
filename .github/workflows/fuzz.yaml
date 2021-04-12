@@ -1,7 +1,8 @@
 name: fuzz
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -29,16 +30,9 @@ jobs:
 
       - run: cargo install afl
 
-      - name: build
-        run: |
-          cargo afl build --bin ${{ matrix.target }} --release
-
       - name: fuzz
         run: |
-          cargo afl fuzz -V 10 -i in -o report target/release/${{ matrix.target }}
-        env:
-          AFL_SKIP_CPUFREQ: 1
-          AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES: 1
+          cargo fuzz run ${{ matrix.target }}
 
       - name: archive report
         uses: actions/upload-artifact@v2

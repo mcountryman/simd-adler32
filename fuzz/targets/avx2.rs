@@ -1,7 +1,11 @@
-fn main() {
-  if let Some(imp) = simd_adler32::imp::avx2::get_imp() {
-    afl::fuzz!(|data: &[u8]| {
+#![no_main]
+#[macro_use]
+use libfuzzer_sys::fuzz_target;
+
+fuzz_target! {
+  |data: &[u8] {
+    if let Some(imp) = simd_adler32::imp::avx2::get_imp() {
       imp(1, 0, data);
-    });
+    }
   }
 }
