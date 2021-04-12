@@ -62,6 +62,7 @@ jobs:
           target: ${{ matrix.target }}
           toolchain: ${{ matrix.toolchain }}
           override: true
+      - uses: Swatinem/rust-cache@v1
       - run: ${{ matrix.deps }}
       - name: Maybe minimal versions
         if: ${{ matrix.variant == 'minimal_versions' }}
