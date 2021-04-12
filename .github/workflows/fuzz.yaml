@@ -3,7 +3,7 @@ name: fuzz
 on:
   schedule:
     # Run every 24h
-    - cron: "0 0 23 ? * * *"
+    - cron: "0 0 23 * * * *"
 
 defaults:
   run:
