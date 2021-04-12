@@ -32,7 +32,7 @@ jobs:
 
       - name: fuzz
         run: |
-          cargo fuzz run ${{ matrix.target }}
+          cargo fuzz run ${{ matrix.target }} -- -max_total_time=60
 
       - name: archive report
         uses: actions/upload-artifact@v2
