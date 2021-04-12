@@ -31,11 +31,11 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: cargo install cargo-fuzz
 
-      - uses: aochmann/actions-download-artifact@1.0.0
-        with:
-          name: corpus
-          path: .
-          latest: true
+      - name: download corpus
+        run:
+          wget https://nightly.link/mcountryman/simd-adler32/workflows/fuzz.yaml/main/corpus.zip
+          mkdir -s corpus
+          unzip corpus.zip -d corpus
 
         # keep going if artifact doesn't exist
         continue-on-error: true
