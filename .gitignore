@@ -7,5 +7,4 @@ fuzz/artifacts
 fuzz/corpus
 
 # cargo
-Cargo.lock
 target/
