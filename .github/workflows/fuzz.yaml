@@ -34,7 +34,7 @@ jobs:
       - name: download corpus
         run: |
           wget https://nightly.link/mcountryman/simd-adler32/workflows/fuzz.yaml/main/corpus.zip
-          mkdir -s corpus
+          mkdir -p corpus
           unzip corpus.zip -d corpus
 
         # keep going if artifact doesn't exist
