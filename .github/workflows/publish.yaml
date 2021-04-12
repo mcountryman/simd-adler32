@@ -24,4 +24,12 @@ jobs:
       - name: Publish
         run: |
           cargo login ${{ secrets.CRATES_IO_TOKEN }}
-          cargo release --dry-run
+          cargo release --skip-push
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          tags: true
+          force: true
+          branch: ${{ github.ref }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
