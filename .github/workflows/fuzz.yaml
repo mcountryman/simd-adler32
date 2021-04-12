@@ -31,15 +31,15 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: cargo install cargo-fuzz
 
-      - name: cache corpus
-        uses: actions/cache@v2
+      - uses: actions/download-artifact@v2
         with:
-          path: fuzz/corpus
-          key: ${{ matrix.target }}-${{ matrix.os }}
+          name: corpus
+        # keep going if artifact doesn't exist
+        continue-on-error: true
 
       - name: fuzz
         run: |
-          cargo fuzz run ${{ matrix.target }} -- -max_total_time=900
+          cargo fuzz run ${{ matrix.target }} -- -max_total_time=60
 
       - name: archive artifacts
         uses: actions/upload-artifact@v2
@@ -47,3 +47,11 @@ jobs:
         with:
           name: artifacts
           path: fuzz/artifacts
+
+      # big decision.  do we store corpus from failed jobs?  for now we don't..
+      - uses: actions/upload-artifact@v2
+        with:
+          name: corpus
+          path: |
+            fuzz/corpus/
+            fuzz/corpus/${{ matrix.target }}
