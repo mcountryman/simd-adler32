@@ -28,8 +28,8 @@ jobs:
           toolchain: nightly
           override: true
 
-      - run: cargo install cargo-fuzz
       - uses: Swatinem/rust-cache@v1
+      - run: cargo install cargo-fuzz
 
       - name: fuzz
         run: |
