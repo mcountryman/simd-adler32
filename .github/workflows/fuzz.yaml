@@ -31,9 +31,12 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: cargo install cargo-fuzz
 
-      - uses: actions/download-artifact@v2
+      - uses: aochmann/actions-download-artifact@1.0.0
         with:
           name: corpus
+          path: .
+          latest: true
+
         # keep going if artifact doesn't exist
         continue-on-error: true
 
