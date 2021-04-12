@@ -28,7 +28,7 @@ jobs:
           toolchain: stable
           override: true
 
-      - run: cargo install afl
+      - run: cargo install cargo-fuzz
 
       - name: fuzz
         run: |
