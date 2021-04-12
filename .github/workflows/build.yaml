@@ -1,14 +1,11 @@
 name: build
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
   test-doc:
-    name: test doc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
