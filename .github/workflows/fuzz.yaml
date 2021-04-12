@@ -1,10 +1,9 @@
 name: fuzz
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  schedule:
+    # Run every 24h
+    - cron: 0 0 23 ? * * *
 
 defaults:
   run:
@@ -31,7 +30,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: cargo install cargo-fuzz
 
-      - name: download corpus
+      - name: Download corpus artifact
         run: |
           wget https://nightly.link/mcountryman/simd-adler32/workflows/fuzz.yaml/main/corpus.zip
           mkdir -p corpus
@@ -40,11 +39,11 @@ jobs:
         # keep going if artifact doesn't exist
         continue-on-error: true
 
-      - name: fuzz
+      - name: Run fuzz test (30m)
         run: |
-          cargo fuzz run ${{ matrix.target }} -- -max_total_time=60
+          cargo fuzz run ${{ matrix.target }} -- -max_total_time=1800
 
-      - name: archive artifacts
+      - name: Archive artifacts
         uses: actions/upload-artifact@v2
         if: failure()
         with:
