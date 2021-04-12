@@ -9,9 +9,6 @@
   <a href="https://github.com/mcountryman/simd-adler32/blob/main/LICENSE.md">
     <img alt="mit license badge" src="https://img.shields.io/github/license/mcountryman/simd-adler32?style=flat-square">
   </a>
-  <a href="">
-    <img alt="github workflow badge" src="https://img.shields.io/github/workflow/status/mcountryman/simd-adler32/build/main?style=flat-square">
-  </a>
 </p>
 
 A SIMD-accelerated Adler-32 rolling hash algorithm implementation.
