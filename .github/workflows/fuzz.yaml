@@ -29,6 +29,7 @@ jobs:
           override: true
 
       - run: cargo install cargo-fuzz
+      - uses: Swatinem/rust-cache@v1
 
       - name: fuzz
         run: |
