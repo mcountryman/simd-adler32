@@ -31,12 +31,19 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run: cargo install cargo-fuzz
 
+      - name: cache corpus
+        uses: uses: actions/cache@v2
+        with:
+          path: fuzz/corpus
+          key: ${{ matrix.target }}-${{ matrix.os }}
+
       - name: fuzz
         run: |
-          cargo fuzz run ${{ matrix.target }} -- -max_total_time=60
+          cargo fuzz run ${{ matrix.target }} -- -max_total_time=900
 
-      - name: archive report
+      - name: archive artifacts
         uses: actions/upload-artifact@v2
+        if: failure()
         with:
-          name: report
-          path: fuzz/report
+          name: artifacts
+          path: fuzz/artifacts

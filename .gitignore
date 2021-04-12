@@ -2,8 +2,9 @@
 .idea/
 .vscode/
 
-# afl
-fuzz/out
+# fuzz
+fuzz/artifacts
+fuzz/corpus
 
 # cargo
 Cargo.lock
