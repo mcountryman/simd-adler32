@@ -90,13 +90,16 @@ use imp::{get_imp, Adler32Imp};
 /// A rolling hash generator type.
 #[derive(Clone)]
 pub struct Adler32 {
-  low: u16,
-  high: u16,
+  a: u16,
+  b: u16,
   update: Adler32Imp,
 }
 
 impl Adler32 {
   /// Constructs a new `Adler32`.
+  ///
+  /// Potential overhead here due to runtime feature detection although in testing on 100k
+  /// and 10k random byte arrays it was not really noticeable.
   ///
   /// # Examples
   /// ```rust
@@ -104,20 +107,35 @@ impl Adler32 {
   ///
   /// let mut adler = Adler32::new();
   /// ```
-  ///
-  /// # Remarks
-  /// Potential overhead here due to runtime feature detection although in testing on 100k
-  /// and 10k random byte arrays it was not really noticeable.
   pub fn new() -> Self {
     Default::default()
   }
 
+  /// Constructs a new `Adler32` using existing checksum.
+  ///
+  /// Potential overhead here due to runtime feature detection although in testing on 100k
+  /// and 10k random byte arrays it was not really noticeable.
+  ///
+  /// # Examples
+  /// ```rust
+  /// use simd_adler32::Adler32;
+  ///
+  /// let mut adler = Adler32::from_checksum(0xdeadbeaf);
+  /// ```
+  pub fn from_checksum(checksum: u32) -> Self {
+    Self {
+      a: checksum as u16,
+      b: (checksum >> 16) as u16,
+      update: get_imp(),
+    }
+  }
+
   /// Computes hash for supplied data and stores results in internal state.
   pub fn write(&mut self, data: &[u8]) {
-    let (high, low) = (self.update)(self.low, self.high, data);
+    let (a, b) = (self.update)(self.a, self.b, data);
 
-    self.low = low;
-    self.high = high;
+    self.a = a;
+    self.b = b;
   }
 
   /// Returns the hash value for the values written so far.
@@ -126,13 +144,13 @@ impl Adler32 {
   /// writes will continue from the current value. If you need to start a fresh hash
   /// value, you will have to use `reset`.
   pub fn finish(&self) -> u32 {
-    u32::from(self.high) << 16 | u32::from(self.low)
+    (u32::from(self.b) << 16) | u32::from(self.a)
   }
 
   /// Resets the internal state.
   pub fn reset(&mut self) {
-    self.low = 1;
-    self.high = 0;
+    self.a = 1;
+    self.b = 0;
   }
 }
 
@@ -161,8 +179,8 @@ pub trait Adler32Hash {
 impl Default for Adler32 {
   fn default() -> Self {
     Self {
-      low: 1,
-      high: 0,
+      a: 1,
+      b: 0,
       update: get_imp(),
     }
   }
@@ -268,5 +286,25 @@ pub mod bufread {
 
       reader.consume(consumed);
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  #[test]
+  fn test_from_checksum() {
+    let buf = b"rust is pretty cool man";
+    let sum = 0xdeadbeaf;
+
+    let mut simd = super::Adler32::from_checksum(sum);
+    let mut adler = adler::Adler32::from_checksum(sum);
+
+    simd.write(buf);
+    adler.write_slice(buf);
+
+    let simd = simd.finish();
+    let scalar = adler.checksum();
+
+    assert_eq!(simd, scalar);
   }
 }
