@@ -1,5 +1,6 @@
 pub mod avx2;
 pub mod avx512;
+pub mod neon;
 pub mod scalar;
 pub mod sse2;
 pub mod ssse3;
