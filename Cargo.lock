@@ -542,7 +542,7 @@ dependencies = [
 
 [[package]]
 name = "simd-adler32"
-version = "0.3.3"
+version = "0.3.4-alpha.0"
 dependencies = [
  "adler",
  "adler32",
