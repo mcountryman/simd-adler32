@@ -90,7 +90,7 @@ comparison are [adler](https://crates.io/crates/adler) and
 | 100k/adler32            | 48.488 us       | 1.9207 GiB/s       |
 | 100k/adler              | 178.36 us       | 534.69 MiB/s       |
 
-- Benchmarks built using mingw64/gcc, ran with `wuffs bench -ccompilers=gcc -reps=1 -iterscale=300 std/adler32`.
+\* wuffs ran using mingw64/gcc, ran with `wuffs bench -ccompilers=gcc -reps=1 -iterscale=300 std/adler32`.
 
 > MacBookPro16,1 - Intel i9-9880H CPU @ 2.30GHz
 
