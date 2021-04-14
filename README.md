@@ -110,6 +110,11 @@ This crate contains a significant amount of `unsafe` code due to the requirement
 for simd intrinsics. Fuzzing is done on release and debug builds prior to publishing via
 `afl`. Fuzzy tests can be found under [fuzz](/fuzz) the directory.
 
+## Resources
+
+- [LICENSE](./LICENSE.md) - MIT
+- [CHANGELOG](./CHANGELOG.md)
+
 ## Credits
 
 Thank you to the contributors of the following projects.
