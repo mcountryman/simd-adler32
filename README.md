@@ -9,9 +9,6 @@
   <a href="https://github.com/mcountryman/simd-adler32/blob/main/LICENSE.md">
     <img alt="mit license badge" src="https://img.shields.io/github/license/mcountryman/simd-adler32?style=flat-square">
   </a>
-  <a href="">
-    <img alt="github workflow badge" src="https://img.shields.io/github/workflow/status/mcountryman/simd-adler32/build/main?style=flat-square">
-  </a>
 </p>
 
 A SIMD-accelerated Adler-32 rolling hash algorithm implementation.
@@ -52,7 +49,7 @@ println!("{}", hash);
 
 | impl | arch             | feature |
 | ---- | ---------------- | ------- |
-| 🚧   | `x86`, `x86_64`  | avx512  |
+| ✅   | `x86`, `x86_64`  | avx512  |
 | ✅   | `x86`, `x86_64`  | avx2    |
 | ✅   | `x86`, `x86_64`  | ssse3   |
 | ✅   | `x86`, `x86_64`  | sse2    |
@@ -84,12 +81,16 @@ comparison are [adler](https://crates.io/crates/adler) and
 | name                    | avg. time       | avg. thrpt         |
 | ----------------------- | --------------- | ------------------ |
 | **10k/simd-adler32**    | **212.61 ns**   | **43.805 GiB/s**   |
+| 10k/wuffs               | 3843 ns         | 2.63 GiB/s\*       |
 | 10k/adler32             | 4.8084 us       | 1.9369 GiB/s       |
 | 10k/adler               | 17.979 us       | 530.43 MiB/s       |
 | ----------------------- | --------------- | ------------------ |
 | **100k/simd-adler32**   | **2.7951 us**   | **33.320 GiB/s**   |
+| 100k/wuffs              | 34733 ns        | 2.6814 GiB/s\*     |
 | 100k/adler32            | 48.488 us       | 1.9207 GiB/s       |
 | 100k/adler              | 178.36 us       | 534.69 MiB/s       |
+
+\* wuffs ran using mingw64/gcc, ran with `wuffs bench -ccompilers=gcc -reps=1 -iterscale=300 std/adler32`.
 
 > MacBookPro16,1 - Intel i9-9880H CPU @ 2.30GHz
 
@@ -108,6 +109,11 @@ comparison are [adler](https://crates.io/crates/adler) and
 This crate contains a significant amount of `unsafe` code due to the requirement of `unsafe`
 for simd intrinsics. Fuzzing is done on release and debug builds prior to publishing via
 `afl`. Fuzzy tests can be found under [fuzz](/fuzz) the directory.
+
+## Resources
+
+- [LICENSE](./LICENSE.md) - MIT
+- [CHANGELOG](./CHANGELOG.md)
 
 ## Credits
 

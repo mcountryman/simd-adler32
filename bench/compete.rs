@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use rand::{thread_rng, RngCore};
 
-fn bench(c: &mut Criterion) {
+pub fn bench(c: &mut Criterion) {
   let mut random = vec![0; 100_000];
   thread_rng().fill_bytes(&mut random[..]);
 

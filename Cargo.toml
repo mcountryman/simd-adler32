@@ -15,8 +15,33 @@ debug = true
 opt-level = 2
 
 [[bench]]
-name = "adler32"
-path = "bench/adler32.rs"
+name = "all"
+path = "bench/all.rs"
+harness = false
+
+[[bench]]
+name = "avx2"
+path = "bench/avx2.rs"
+harness = false
+
+[[bench]]
+name = "avx512"
+path = "bench/avx512.rs"
+harness = false
+
+[[bench]]
+name = "scalar"
+path = "bench/scalar.rs"
+harness = false
+
+[[bench]]
+name = "sse2"
+path = "bench/sse2.rs"
+harness = false
+
+[[bench]]
+name = "ssse3"
+path = "bench/ssse3.rs"
 harness = false
 
 [[bench]]
