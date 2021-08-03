@@ -23,17 +23,18 @@ A SIMD-accelerated Adler-32 rolling hash algorithm implementation.
 
 ## Feature flags
 
-* `std` - Enabled by default
+- `std` - Enabled by default
 
 Enables std support, see [CPU Feature Detection](#cpu-feature-detection) for runtime
 detection support.
-* `nightly`
+
+- `nightly`
 
 Enables nightly features required for avx512 support.
 
-* `const-generics` - Enabled by default
+- `const-generics` - Enabled by default
 
-Enables const-generics support allowing for user-defined array hashing by value.  See
+Enables const-generics support allowing for user-defined array hashing by value. See
 [`Adler32Hash`] for details.
 
 ## Quick start
@@ -109,15 +110,17 @@ comparison are [adler](https://crates.io/crates/adler) and
 
 > MacBookPro16,1 - Intel i9-9880H CPU @ 2.30GHz
 
-| name                    | avg. time       | avg. thrpt         |
-| ----------------------- | --------------- | ------------------ |
-| **10k/simd-adler32**    | **200.37 ns**   | **46.480 GiB/s**   |
-| 10k/adler32             | 4.1516 us       | 2.2433 GiB/s       |
-| 10k/adler               | 10.220 us       | 933.15 MiB/s       |
-| ----------------------- | --------------- | ------------------ |
-| **100k/simd-adler32**   | **2.3282 us**   | **40.003 GiB/s**   |
-| 100k/adler32            | 41.130 us       | 2.2643 GiB/s       |
-| 100k/adler              | 83.776 us       | 534.69 MiB/s       |
+| name                      | avg. time       | avg. thrpt           |
+| ------------------------- | --------------- | -------------------- |
+| **10k/simd-adler32**      | **194.690 ns**  | **47.836 GiB/s**     |
+| 10k/wuffs                 | 517.003 ns      | 18.014 GiB/s         |
+| 10k/adler32               | 4.044 µs        | 2.303 GiB/s          |
+| 10k/adler                 | 17.490 µs       | 545.284 MiB/s        |
+| ------------------------- | --------------- | -------------------- |
+| **100k/simd-adler32**     | **2.237 µs**    | **41.633 GiB/s**     |
+| 100k/wuffs                | 3.908 µs        | 23.828 GiB/s         |
+| 100k/adler32              | 40.745 µs       | 2.286 GiB/s          |
+| 100k/adler                | 174.528 µs      | 546.431 MiB/s        |
 
 > c5.xlarge - Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
 
