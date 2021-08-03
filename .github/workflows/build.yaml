@@ -170,4 +170,4 @@ jobs:
           override: true
       - uses: Swatinem/rust-cache@v1
       - name: Build top-level only
-        run: cargo build --target=thumbv6m-none-eabi --no-default-features
+        run: cargo build --lib --target=thumbv6m-none-eabi --no-default-features

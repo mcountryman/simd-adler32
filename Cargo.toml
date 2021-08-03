@@ -2,7 +2,7 @@
 name = "simd-adler32"
 authors = ["Marvin Countryman <me@maar.vin>"]
 license = "MIT"
-version = "0.3.3-alpha.0"
+version = "0.3.4-alpha.0"
 edition = "2018"
 keywords = ["simd", "avx2", "ssse3", "adler", "adler32"]
 categories = ["algorithms", "no-std"]
@@ -14,34 +14,13 @@ exclude = ["bench"]
 debug = true
 opt-level = 2
 
-[[bench]]
-name = "all"
-path = "bench/all.rs"
-harness = false
+[[bin]]
+name = "markdown"
+path = "src/markdown.rs"
 
 [[bench]]
-name = "avx2"
-path = "bench/avx2.rs"
-harness = false
-
-[[bench]]
-name = "avx512"
-path = "bench/avx512.rs"
-harness = false
-
-[[bench]]
-name = "scalar"
-path = "bench/scalar.rs"
-harness = false
-
-[[bench]]
-name = "sse2"
-path = "bench/sse2.rs"
-harness = false
-
-[[bench]]
-name = "ssse3"
-path = "bench/ssse3.rs"
+name = "imp"
+path = "bench/imp.rs"
 harness = false
 
 [[bench]]
@@ -57,8 +36,9 @@ const-generics = []
 
 [dev-dependencies]
 rand = "0.8"
-criterion = "0.3"
+criterion = "0.3.3"
 
 # competition
 adler = "1.0.2"
 adler32 = "1.2.0"
+wuffs = "0.2.0"

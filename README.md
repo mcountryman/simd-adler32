@@ -21,6 +21,21 @@ A SIMD-accelerated Adler-32 rolling hash algorithm implementation.
 - Blazing fast performance on as many targets as possible (currently only x86 and x86_64)
 - Default to scalar implementation when simd not available
 
+## Feature flags
+
+* `std` - Enabled by default
+
+Enables std support, see [CPU Feature Detection](#cpu-feature-detection) for runtime
+detection support.
+* `nightly`
+
+Enables nightly features required for avx512 support.
+
+* `const-generics` - Enabled by default
+
+Enables const-generics support allowing for user-defined array hashing by value.  See
+[`Adler32Hash`] for details.
+
 ## Quick start
 
 > Cargo.toml
@@ -78,17 +93,17 @@ comparison are [adler](https://crates.io/crates/adler) and
 
 > Windows 10 Pro - Intel i5-8300H @ 2.30GHz
 
-| name                    | avg. time       | avg. thrpt         |
-| ----------------------- | --------------- | ------------------ |
-| **10k/simd-adler32**    | **212.61 ns**   | **43.805 GiB/s**   |
-| 10k/wuffs               | 3843 ns         | 2.63 GiB/s\*       |
-| 10k/adler32             | 4.8084 us       | 1.9369 GiB/s       |
-| 10k/adler               | 17.979 us       | 530.43 MiB/s       |
-| ----------------------- | --------------- | ------------------ |
-| **100k/simd-adler32**   | **2.7951 us**   | **33.320 GiB/s**   |
-| 100k/wuffs              | 34733 ns        | 2.6814 GiB/s\*     |
-| 100k/adler32            | 48.488 us       | 1.9207 GiB/s       |
-| 100k/adler              | 178.36 us       | 534.69 MiB/s       |
+| name                      | avg. time       | avg. thrpt           |
+| ------------------------- | --------------- | -------------------- |
+| **10k/simd-adler32**      | **217.936 ns**  | **42.734 GiB/s**     |
+| 10k/wuffs                 | 884.369 ns      | 10.531 GiB/s         |
+| 10k/adler32               | 4.576 µs        | 2.035 GiB/s          |
+| 10k/adler                 | 18.515 µs       | 515.075 MiB/s        |
+| ------------------------- | --------------- | -------------------- |
+| **100k/simd-adler32**     | **2.542 µs**    | **36.641 GiB/s**     |
+| 100k/wuffs                | 4.873 µs        | 19.111 GiB/s         |
+| 100k/adler32              | 45.917 µs       | 2.028 GiB/s          |
+| 100k/adler                | 178.365 µs      | 534.677 MiB/s        |
 
 \* wuffs ran using mingw64/gcc, ran with `wuffs bench -ccompilers=gcc -reps=1 -iterscale=300 std/adler32`.
 
@@ -103,6 +118,30 @@ comparison are [adler](https://crates.io/crates/adler) and
 | **100k/simd-adler32**   | **2.3282 us**   | **40.003 GiB/s**   |
 | 100k/adler32            | 41.130 us       | 2.2643 GiB/s       |
 | 100k/adler              | 83.776 us       | 534.69 MiB/s       |
+
+> c5.xlarge - Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
+
+| name                      | avg. time       | avg. thrpt           |
+| ------------------------- | --------------- | -------------------- |
+| **10k/simd-adler32**      | **202.186 ns**  | **46.063 GiB/s**     |
+| 10k/wuffs                 | 2.247 µs        | 4.144 GiB/s          |
+| 10k/adler                 | 2.968 µs        | 3.138 GiB/s          |
+| 10k/adler32               | 4.898 µs        | 1.901 GiB/s          |
+| ------------------------- | --------------- | -------------------- |
+| **100k/simd-adler32**     | **2.397 µs**    | **38.855 GiB/s**     |
+| 100k/wuffs                | 7.106 µs        | 13.107 GiB/s         |
+| 100k/adler                | 25.209 µs       | 3.694 GiB/s          |
+| 100k/adler32              | 49.044 µs       | 1.899 GiB/s          |
+
+## CPU Feature Detection
+
+simd-adler32 supports both runtime and compile time CPU feature detection using the
+`std::is_x86_feature_detected` macro when the `Adler32` struct is instantiated with
+the `new` fn.  
+Without `std` feature enabled simd-adler32 falls back to compile time feature detection
+using `target-feature` or `target-cpu` flags supplied to rustc. See [https://rust-lang.github.io/packed_simd/perf-guide/target-feature/rustflags.html](https://rust-lang.github.io/packed_simd/perf-guide/target-feature/rustflags.html)
+for more information.
+Feature detection tries to use the fastest supported feature first.
 
 ## Safety
 
