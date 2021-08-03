@@ -119,6 +119,20 @@ comparison are [adler](https://crates.io/crates/adler) and
 | 100k/adler32            | 41.130 us       | 2.2643 GiB/s       |
 | 100k/adler              | 83.776 us       | 534.69 MiB/s       |
 
+> c5.xlarge - Intel(R) Xeon(R) Platinum 8124M CPU @ 3.00GHz
+
+| name                      | avg. time       | avg. thrpt           |
+| ------------------------- | --------------- | -------------------- |
+| **10k/simd-adler32**      | **202.186 ns**  | **46.063 GiB/s**     |
+| 10k/wuffs                 | 2.247 µs        | 4.144 GiB/s          |
+| 10k/adler                 | 2.968 µs        | 3.138 GiB/s          |
+| 10k/adler32               | 4.898 µs        | 1.901 GiB/s          |
+| ------------------------- | --------------- | -------------------- |
+| **100k/simd-adler32**     | **2.397 µs**    | **38.855 GiB/s**     |
+| 100k/wuffs                | 7.106 µs        | 13.107 GiB/s         |
+| 100k/adler                | 25.209 µs       | 3.694 GiB/s          |
+| 100k/adler32              | 49.044 µs       | 1.899 GiB/s          |
+
 ## CPU Feature Detection
 
 simd-adler32 supports both runtime and compile time CPU feature detection using the
