@@ -54,7 +54,7 @@ println!("{}", hash);
 | ✅   | `x86`, `x86_64`  | ssse3   |
 | ✅   | `x86`, `x86_64`  | sse2    |
 | 🚧   | `arm`, `aarch64` | neon    |
-|      | `wasm32`         | simd128 |
+| ✅   | `wasm32`         | simd128 |
 
 **MSRV** `1.36.0`\*\*
 
