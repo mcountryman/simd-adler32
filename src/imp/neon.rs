@@ -6,9 +6,14 @@ pub fn get_imp() -> Option<Adler32Imp> {
 }
 
 #[inline]
-#[cfg(all(feature = "std", feature = "nightly", target_arch = "arm"))]
+#[cfg(all(
+  feature = "std",
+  feature = "nightly",
+  target_arch = "arm",
+  target_feature = "v7"
+))]
 fn get_imp_inner() -> Option<Adler32Imp> {
-  if std::is_arm_feature_detected("neon") {
+  if std::is_arm_feature_detected!("neon") {
     Some(imp::update)
   } else {
     None
@@ -16,9 +21,9 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 }
 
 #[inline]
-#[cfg(all(feature = "std", feature = "nightly", target_arch = "aarch64"))]
+#[cfg(all(feature = "std", target_arch = "aarch64"))]
 fn get_imp_inner() -> Option<Adler32Imp> {
-  if std::is_aarch64_feature_detected("neon") {
+  if std::is_aarch64_feature_detected!("neon") {
     Some(imp::update)
   } else {
     None
@@ -27,9 +32,14 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 
 #[inline]
 #[cfg(all(
-  feature = "nightly",
   target_feature = "neon",
-  not(all(feature = "std", any(target_arch = "arm", target_arch = "aarch64")))
+  not(all(
+    feature = "std",
+    any(
+      all(feature = "nightly", target_arch = "arm", target_feature = "v7"),
+      target_arch = "aarch64"
+    )
+  ))
 ))]
 fn get_imp_inner() -> Option<Adler32Imp> {
   Some(imp::update)
@@ -40,8 +50,10 @@ fn get_imp_inner() -> Option<Adler32Imp> {
   not(target_feature = "neon"),
   not(all(
     feature = "std",
-    feature = "nightly",
-    any(target_arch = "arm", target_arch = "aarch64")
+    any(
+      all(feature = "nightly", target_arch = "arm", target_feature = "v7"),
+      target_arch = "aarch64"
+    )
   ))
 ))]
 fn get_imp_inner() -> Option<Adler32Imp> {
@@ -49,14 +61,16 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 }
 
 #[cfg(all(
-  feature = "nightly",
-  any(target_arch = "arm", target_arch = "aarch64"),
+  any(
+    all(feature = "nightly", target_arch = "arm", target_feature = "v7"),
+    target_arch = "aarch64"
+  ),
   any(feature = "std", target_feature = "neon")
 ))]
 mod imp {
   const MOD: u32 = 65521;
   const NMAX: usize = 5552;
-  const BLOCK_SIZE: usize = 64;
+  const BLOCK_SIZE: usize = 32;
   const CHUNK_SIZE: usize = NMAX / BLOCK_SIZE * BLOCK_SIZE;
 
   #[cfg(target_arch = "aarch64")]
@@ -69,6 +83,7 @@ mod imp {
   }
 
   #[inline]
+  #[cfg_attr(target_arch = "arm", target_feature(enable = "v7"))]
   #[target_feature(enable = "neon")]
   unsafe fn update_imp(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
     let mut a = a as u32;
@@ -128,63 +143,50 @@ mod imp {
     let blocks = chunk.chunks_exact(BLOCK_SIZE);
     let blocks_remainder = blocks.remainder();
 
-    let one_v = _mm512_set1_epi16(1);
-    let zero_v = _mm512_setzero_si512();
-    let weights = get_weights();
+    let weight_hi_v = get_weight_hi();
+    let weight_lo_v = get_weight_lo();
 
-    let p_v = (*a * blocks.len() as u32) as _;
-    let mut p_v = _mm512_set_epi32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, p_v);
-    let mut a_v = _mm512_setzero_si512();
-    let mut b_v = _mm512_set_epi32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, *b as _);
+    let mut p_v: uint32x4_t = core::mem::transmute([*a * blocks.len() as u32, 0, 0, 0]);
+    let mut a_v: uint32x4_t = core::mem::transmute([0u32, 0, 0, 0]);
+    let mut b_v: uint32x4_t = core::mem::transmute([*b, 0, 0, 0]);
 
     for block in blocks {
-      let block_ptr = block.as_ptr() as *const _;
-      let block = _mm512_loadu_si512(block_ptr);
+      let block_ptr = block.as_ptr() as *const uint8x16_t;
+      let v_lo = core::ptr::read_unaligned(block_ptr);
+      let v_hi = core::ptr::read_unaligned(block_ptr.add(1));
 
-      p_v = _mm512_add_epi32(p_v, a_v);
+      p_v = vaddq_u32(p_v, a_v);
 
-      a_v = _mm512_add_epi32(a_v, _mm512_sad_epu8(block, zero_v));
-      let mad = _mm512_maddubs_epi16(block, weights);
-      b_v = _mm512_add_epi32(b_v, _mm512_madd_epi16(mad, one_v));
+      a_v = vaddq_u32(a_v, vqaddlq_u8(v_lo));
+      b_v = vdotq_u32(b_v, v_lo, weight_lo_v);
+
+      a_v = vaddq_u32(a_v, vqaddlq_u8(v_hi));
+      b_v = vdotq_u32(b_v, v_hi, weight_hi_v);
     }
 
-    b_v = _mm512_add_epi32(b_v, _mm512_slli_epi32(p_v, 6));
+    b_v = vaddq_u32(b_v, vshlq_n_u32(p_v, 5));
 
-    *a += reduce_add(a_v);
-    *b = reduce_add(b_v);
+    *a += vaddvq_u32(a_v);
+    *b = vaddvq_u32(b_v);
 
     blocks_remainder
   }
 
   #[inline(always)]
-  unsafe fn reduce_add(v: __m512i) -> u32 {
-    let v: [__m256i; 2] = core::mem::transmute(v);
-
-    reduce_add_256(v[0]) + reduce_add_256(v[1])
+  unsafe fn vqaddlq_u8(a: uint8x16_t) -> uint32x4_t {
+    vpaddlq_u16(vpaddlq_u8(a))
   }
 
   #[inline(always)]
-  unsafe fn reduce_add_256(v: __m256i) -> u32 {
-    let v: [__m128i; 2] = core::mem::transmute(v);
-    let sum = _mm_add_epi32(v[0], v[1]);
-    let hi = _mm_unpackhi_epi64(sum, sum);
-
-    let sum = _mm_add_epi32(hi, sum);
-    let hi = _mm_shuffle_epi32(sum, crate::imp::_MM_SHUFFLE(2, 3, 0, 1));
-
-    let sum = _mm_add_epi32(sum, hi);
-    let sum = _mm_cvtsi128_si32(sum) as _;
-
-    sum
+  unsafe fn get_weight_lo() -> uint8x16_t {
+    core::mem::transmute([
+      32u8, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17,
+    ])
   }
 
   #[inline(always)]
-  unsafe fn get_weights() -> __m512i {
-    _mm512_set_epi8(
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-      24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
-      45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-    )
+  unsafe fn get_weight_hi() -> uint8x16_t {
+    core::mem::transmute([16u8, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
   }
 }
 
