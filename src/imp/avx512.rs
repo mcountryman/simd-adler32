@@ -34,7 +34,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 
 #[inline]
 #[cfg(all(
-  not(all(target_feature = "avx512f", target_feature = "avx512bw")),
+  not(all(feature = "nightly", target_feature = "avx512f", target_feature = "avx512bw")),
   not(all(
     feature = "std",
     feature = "nightly",
