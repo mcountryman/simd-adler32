@@ -24,7 +24,7 @@ jobs:
       - name: Publish
         run: |
           cargo login ${{ secrets.CRATES_IO_TOKEN }}
-          cargo release --no-confirm --no-push
+          cargo release --no-confirm --no-push -x
 
       - name: Push changes
         uses: ad-m/github-push-action@master
