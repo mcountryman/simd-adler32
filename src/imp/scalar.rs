@@ -19,9 +19,12 @@ pub fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
   }
 
   for byte in remainder {
-    a = a.wrapping_add(*byte as _) % MOD;
-    b = b.wrapping_add(a) % MOD;
+    a = a.wrapping_add(*byte as _);
+    b = b.wrapping_add(a);
   }
+
+  a %= MOD;
+  b %= MOD;
 
   (a as u16, b as u16)
 }
