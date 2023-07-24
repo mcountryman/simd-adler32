@@ -100,8 +100,8 @@ mod imp {
 
     for block in blocks {
       let block_ptr = block.as_ptr() as *const v128;
-      let v_lo = unsafe { *(block_ptr) };
-      let v_hi = unsafe { *(block_ptr.add(1)) };
+      let v_lo = unsafe { block_ptr.read_unaligned() };
+      let v_hi = unsafe { block_ptr.add(1).read_unaligned() };
 
       p_v = u32x4_add(p_v, a_v);
 
