@@ -11,7 +11,7 @@
   </a>
 </p>
 
-A SIMD-accelerated Adler-32 rolling hash algorithm implementation.
+A SIMD-accelerated Adler-32 hash algorithm implementation.
 
 ## Features
 

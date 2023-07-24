@@ -1,6 +1,6 @@
 //! # simd-adler32
 //!
-//! A SIMD-accelerated Adler-32 rolling hash algorithm implementation.
+//! A SIMD-accelerated Adler-32 hash algorithm implementation.
 //!
 //! ## Features
 //!
@@ -87,7 +87,7 @@ pub mod imp;
 pub use hash::*;
 use imp::{get_imp, Adler32Imp};
 
-/// A rolling hash generator type.
+/// An adler32 hash generator type.
 #[derive(Clone)]
 pub struct Adler32 {
   a: u16,
