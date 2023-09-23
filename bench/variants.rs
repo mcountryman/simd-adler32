@@ -3,7 +3,7 @@ use criterion::{
   Criterion, Throughput,
 };
 use rand::{thread_rng, RngCore};
-use simd_adler32::imp::{avx2, avx512, scalar, sse2, ssse3, wasm, Adler32Imp};
+use simd_adler32::imp::{avx2, avx512, scalar, sse2, ssse3, stdsimd, wasm, Adler32Imp};
 
 pub fn bench(c: &mut Criterion) {
   let mut data = [0; 100_000];
@@ -29,6 +29,10 @@ pub fn bench(c: &mut Criterion) {
 
   if let Some(update) = wasm::get_imp() {
     bench_variant(&mut group, "wasm", &data, update);
+  }
+
+  if let Some(update) = stdsimd::get_imp() {
+    bench_variant(&mut group, "stdsimd", &data, update);
   }
 
   bench_variant(&mut group, "scalar", &data, scalar::update);
