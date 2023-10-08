@@ -28,8 +28,8 @@
 //! adler.write(b"rust is pretty cool, man");
 //! let hash = adler.finish();
 //!
-//! println!("{}", hash);
-//! // 1921255656
+//! println!("{}", hash); // 1921255656
+//! # assert_eq!(hash, 1921255656);
 //! ```
 //!
 //! ## Feature flags
@@ -164,7 +164,8 @@ impl Adler32 {
 /// use simd_adler32::adler32;
 ///
 /// let hash = adler32(b"Adler-32");
-/// println!("{}", hash); // 800813569
+/// println!("{}", hash); // 204735099
+/// # assert_eq!(hash, 204735099);
 /// ```
 pub fn adler32<H: Adler32Hash>(hash: &H) -> u32 {
   hash.hash()
@@ -198,7 +199,8 @@ pub mod read {
   //! let mut reader = Cursor::new(b"Hello there");
   //! let hash = adler32(&mut reader).unwrap();
   //!
-  //! println!("{}", hash) // 800813569
+  //! println!("{}", hash); // 409338925
+  //! # assert_eq!(hash, 409338925);
   //! ```
   use crate::Adler32;
   use std::io::{Read, Result};
@@ -213,7 +215,8 @@ pub mod read {
   /// let mut reader = Cursor::new(b"Hello there");
   /// let hash = adler32(&mut reader).unwrap();
   ///
-  /// println!("{}", hash) // 800813569
+  /// println!("{}", hash); // 409338925
+  /// # assert_eq!(hash, 409338925);
   /// ```
   pub fn adler32<R: Read>(reader: &mut R) -> Result<u32> {
     let mut hash = Adler32::new();
@@ -246,7 +249,8 @@ pub mod bufread {
   //! let mut reader = BufReader::new(reader);
   //! let hash = adler32(&mut reader).unwrap();
   //!
-  //! println!("{}", hash) // 800813569
+  //! println!("{}", hash); // 409338925
+  //! # assert_eq!(hash, 409338925);
   //! ```
   use crate::Adler32;
   use std::io::{BufRead, ErrorKind, Result};
@@ -262,7 +266,8 @@ pub mod bufread {
   /// let mut reader = BufReader::new(reader);
   /// let hash = adler32(&mut reader).unwrap();
   ///
-  /// println!("{}", hash) // 800813569
+  /// println!("{}", hash); // 409338925
+  /// # assert_eq!(hash, 409338925);
   /// ```
   pub fn adler32<R: BufRead>(reader: &mut R) -> Result<u32> {
     let mut hash = Adler32::new();
