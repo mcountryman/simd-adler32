@@ -40,7 +40,7 @@
 //! detection support.
 //! * `nightly`
 //!
-//! Enables nightly features required for avx512 support.
+//! Enables nightly features required for avx512 and std::simd support.
 //!
 //! * `const-generics` - Enabled by default
 //!
@@ -77,7 +77,7 @@
 //!
 //! Feature detection tries to use the fastest supported feature first.
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(feature = "nightly", feature(stdsimd, avx512_target_feature))]
+#![cfg_attr(feature = "nightly", feature(stdsimd, avx512_target_feature, portable_simd))]
 
 #[doc(hidden)]
 pub mod hash;
