@@ -77,7 +77,7 @@
 //!
 //! Feature detection tries to use the fastest supported feature first.
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(feature = "nightly", feature(stdsimd, avx512_target_feature))]
+#![cfg_attr(feature = "nightly", feature(stdarch_x86_avx512, avx512_target_feature))]
 
 #[doc(hidden)]
 pub mod hash;
