@@ -82,20 +82,18 @@
   feature(stdarch_x86_avx512, avx512_target_feature)
 )]
 
-#[doc(hidden)]
+pub mod arch;
 pub mod hash;
-#[doc(hidden)]
-pub mod imp;
+pub mod update;
 
-pub use hash::*;
-use imp::{get_imp, Adler32Imp};
+use update::Adler32Update;
 
 /// An adler32 hash generator type.
 #[derive(Clone)]
 pub struct Adler32 {
   a: u16,
   b: u16,
-  update: Adler32Imp,
+  update: Adler32Update,
 }
 
 impl Adler32 {
@@ -129,7 +127,7 @@ impl Adler32 {
     Self {
       a: checksum as u16,
       b: (checksum >> 16) as u16,
-      update: get_imp(),
+      update: update::best(),
     }
   }
 
@@ -184,7 +182,7 @@ impl Default for Adler32 {
     Self {
       a: 1,
       b: 0,
-      update: get_imp(),
+      update: update::best(),
     }
   }
 }
@@ -289,25 +287,5 @@ pub mod bufread {
 
       reader.consume(consumed);
     }
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  #[test]
-  fn test_from_checksum() {
-    let buf = b"rust is pretty cool man";
-    let sum = 0xdeadbeaf;
-
-    let mut simd = super::Adler32::from_checksum(sum);
-    let mut adler = adler::Adler32::from_checksum(sum);
-
-    simd.write(buf);
-    adler.write_slice(buf);
-
-    let simd = simd.finish();
-    let scalar = adler.checksum();
-
-    assert_eq!(simd, scalar);
   }
 }

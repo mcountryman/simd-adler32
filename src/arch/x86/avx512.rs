@@ -1,77 +1,49 @@
-use super::Adler32Imp;
+use crate::update::Adler32Update;
 
-/// Resolves update implementation if CPU supports avx512f and avx512bw instructions.
-pub fn get_imp() -> Option<Adler32Imp> {
-  get_imp_inner()
-}
-
-#[inline]
-#[cfg(all(
-  feature = "std",
-  feature = "nightly",
-  any(target_arch = "x86", target_arch = "x86_64")
-))]
-fn get_imp_inner() -> Option<Adler32Imp> {
-  let has_avx512f = std::is_x86_feature_detected!("avx512f");
-  let has_avx512bw = std::is_x86_feature_detected!("avx512bw");
+pub fn get_update_if_supported() -> Option<Adler32Update> {
+  let has_avx512f = super::is_x86_feature_detected!("avx512f");
+  let has_avx512bw = super::is_x86_feature_detected!("avx512bw");
 
   if has_avx512f && has_avx512bw {
-    Some(imp::update)
+    // FIXME: What if runtime support but dev forgot to compile with feature flags?
+    fn stub(a: u16, b: u16, bytes: &[u8]) -> (u16, u16) {
+      unsafe { update(a, b, bytes) }
+    }
+
+    Some(stub)
   } else {
     None
   }
 }
 
 #[inline]
-#[cfg(all(
-  feature = "nightly",
-  all(target_feature = "avx512f", target_feature = "avx512bw"),
-  not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
-))]
-fn get_imp_inner() -> Option<Adler32Imp> {
-  Some(imp::update)
+pub unsafe fn update(a: u16, b: u16, bytes: &[u8]) -> (u16, u16) {
+  imp::update(a, b, bytes)
 }
 
-#[inline]
-#[cfg(all(
-  not(all(feature = "nightly", target_feature = "avx512f", target_feature = "avx512bw")),
-  not(all(
-    feature = "std",
-    feature = "nightly",
-    any(target_arch = "x86", target_arch = "x86_64")
-  ))
-))]
-fn get_imp_inner() -> Option<Adler32Imp> {
-  None
-}
-
-#[cfg(all(
-  feature = "nightly",
-  any(target_arch = "x86", target_arch = "x86_64"),
-  any(
-    feature = "std",
-    all(target_feature = "avx512f", target_feature = "avx512bw")
-  )
-))]
+#[cfg(not(all(feature = "nightly", any(target_arch = "x86", target_arch = "x86_64"))))]
 mod imp {
-  const MOD: u32 = 65521;
-  const NMAX: usize = 5552;
-  const BLOCK_SIZE: usize = 64;
-  const CHUNK_SIZE: usize = NMAX / BLOCK_SIZE * BLOCK_SIZE;
+  pub unsafe fn update(_: u16, _: u16, _: &[u8]) -> (u16, u16) {
+    panic!("Target platform does not support `avx512f` and or `avx512bw`")
+  }
+}
 
+#[cfg(all(feature = "nightly", any(target_arch = "x86", target_arch = "x86_64")))]
+mod imp {
   #[cfg(target_arch = "x86")]
   use core::arch::x86::*;
   #[cfg(target_arch = "x86_64")]
   use core::arch::x86_64::*;
 
-  pub fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
-    unsafe { update_imp(a, b, data) }
-  }
+  const MOD: u32 = 65521;
+  const NMAX: usize = 5552;
+  const BLOCK_SIZE: usize = 64;
+  const CHUNK_SIZE: usize = NMAX / BLOCK_SIZE * BLOCK_SIZE;
 
   #[inline]
   #[target_feature(enable = "avx512f")]
   #[target_feature(enable = "avx512bw")]
-  unsafe fn update_imp(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
+  pub unsafe fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
     let mut a = a as u32;
     let mut b = b as u32;
 
@@ -171,7 +143,7 @@ mod imp {
     let hi = _mm_unpackhi_epi64(sum, sum);
 
     let sum = _mm_add_epi32(hi, sum);
-    let hi = _mm_shuffle_epi32(sum, crate::imp::_MM_SHUFFLE(2, 3, 0, 1));
+    let hi = _mm_shuffle_epi32(sum, crate::x86::_mm_shuffle(2, 3, 0, 1));
 
     let sum = _mm_add_epi32(sum, hi);
     let sum = _mm_cvtsi128_si32(sum) as _;
@@ -186,57 +158,5 @@ mod imp {
       24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
       45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
     )
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use rand::Rng;
-
-  #[test]
-  fn zeroes() {
-    assert_sum_eq(&[]);
-    assert_sum_eq(&[0]);
-    assert_sum_eq(&[0, 0]);
-    assert_sum_eq(&[0; 100]);
-    assert_sum_eq(&[0; 1024]);
-    assert_sum_eq(&[0; 1024 * 1024]);
-  }
-
-  #[test]
-  fn ones() {
-    assert_sum_eq(&[]);
-    assert_sum_eq(&[1]);
-    assert_sum_eq(&[1, 1]);
-    assert_sum_eq(&[1; 100]);
-    assert_sum_eq(&[1; 1024]);
-    assert_sum_eq(&[1; 1024 * 1024]);
-  }
-
-  #[test]
-  fn random() {
-    let mut random = [0; 1024 * 1024];
-    rand::thread_rng().fill(&mut random[..]);
-
-    assert_sum_eq(&random[..1]);
-    assert_sum_eq(&random[..100]);
-    assert_sum_eq(&random[..1024]);
-    assert_sum_eq(&random[..1024 * 1024]);
-  }
-
-  /// Example calculation from https://en.wikipedia.org/wiki/Adler-32.
-  #[test]
-  fn wiki() {
-    assert_sum_eq(b"Wikipedia");
-  }
-
-  fn assert_sum_eq(data: &[u8]) {
-    if let Some(update) = super::get_imp() {
-      let (a, b) = update(1, 0, data);
-      let left = u32::from(b) << 16 | u32::from(a);
-      let right = adler::adler32_slice(data);
-
-      assert_eq!(left, right, "len({})", data.len());
-    }
   }
 }

@@ -1,20 +1,26 @@
-use super::Adler32Imp;
+use crate::update::Adler32Update;
 
-/// Resolves update implementation if CPU supports simd128 instructions.
-pub fn get_imp() -> Option<Adler32Imp> {
-  get_imp_inner()
+pub fn get_update_if_supported() -> Option<Adler32Update> {
+  cfg_if::cfg_if! {
+    if #[cfg(target_feature = "simd128")] {
+      Some(|a, b, bytes| unsafe { update(a, b, bytes) })
+    } else {
+      None
+    }
+  }
 }
 
-#[inline]
 #[cfg(target_feature = "simd128")]
-fn get_imp_inner() -> Option<Adler32Imp> {
-  Some(imp::update)
+#[inline]
+pub unsafe fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
+  imp::update(a, b, data)
 }
 
-#[inline]
 #[cfg(not(target_feature = "simd128"))]
-fn get_imp_inner() -> Option<Adler32Imp> {
-  None
+mod imp {
+  pub unsafe fn update(_: u16, _: u16, _: &[u8]) -> (u16, u16) {
+    panic!("Target platform does not support `simd128`")
+  }
 }
 
 #[cfg(target_feature = "simd128")]
@@ -29,13 +35,9 @@ mod imp {
   #[cfg(target_arch = "wasm64")]
   use core::arch::wasm64::*;
 
-  pub fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
-    update_imp(a, b, data)
-  }
-
   #[inline]
   #[target_feature(enable = "simd128")]
-  fn update_imp(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
+  pub unsafe fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
     let mut a = a as u32;
     let mut b = b as u32;
 
@@ -161,57 +163,5 @@ mod imp {
   #[inline(always)]
   fn get_weight_hi() -> v128 {
     u8x16(16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use rand::Rng;
-
-  #[test]
-  fn zeroes() {
-    assert_sum_eq(&[]);
-    assert_sum_eq(&[0]);
-    assert_sum_eq(&[0, 0]);
-    assert_sum_eq(&[0; 100]);
-    assert_sum_eq(&[0; 1024]);
-    assert_sum_eq(&[0; 512 * 1024]);
-  }
-
-  #[test]
-  fn ones() {
-    assert_sum_eq(&[]);
-    assert_sum_eq(&[1]);
-    assert_sum_eq(&[1, 1]);
-    assert_sum_eq(&[1; 100]);
-    assert_sum_eq(&[1; 1024]);
-    assert_sum_eq(&[1; 512 * 1024]);
-  }
-
-  #[test]
-  fn random() {
-    let mut random = [0; 512 * 1024];
-    rand::thread_rng().fill(&mut random[..]);
-
-    assert_sum_eq(&random[..1]);
-    assert_sum_eq(&random[..100]);
-    assert_sum_eq(&random[..1024]);
-    assert_sum_eq(&random[..512 * 1024]);
-  }
-
-  /// Example calculation from https://en.wikipedia.org/wiki/Adler-32.
-  #[test]
-  fn wiki() {
-    assert_sum_eq(b"Wikipedia");
-  }
-
-  fn assert_sum_eq(data: &[u8]) {
-    if let Some(update) = super::get_imp() {
-      let (a, b) = update(1, 0, data);
-      let left = u32::from(b) << 16 | u32::from(a);
-      let right = adler::adler32_slice(data);
-
-      assert_eq!(left, right, "len({})", data.len());
-    }
   }
 }

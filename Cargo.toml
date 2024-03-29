@@ -37,3 +37,6 @@ criterion = "0.3"
 # competition
 adler = "1.0.2"
 adler32 = "1.2.0"
+
+[dependencies]
+cfg-if = "1.0.0"
