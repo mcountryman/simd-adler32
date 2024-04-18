@@ -29,6 +29,7 @@ default = ["std", "const-generics"]
 std = []
 nightly = []
 const-generics = []
+force-scalar = []
 
 [dev-dependencies]
 rand = "0.8"
