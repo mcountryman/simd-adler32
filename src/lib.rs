@@ -112,9 +112,6 @@ impl Adler32 {
 
   /// Constructs a new `Adler32` using existing checksum.
   ///
-  /// Potential overhead here due to runtime feature detection although in testing on 100k
-  /// and 10k random byte arrays it was not really noticeable.
-  ///
   /// # Examples
   /// ```rust
   /// use simd_adler32::Adler32;
