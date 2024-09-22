@@ -87,15 +87,11 @@ pub mod hash;
 #[doc(hidden)]
 pub mod imp;
 
-pub use hash::*;
-use imp::{get_imp, Adler32Imp};
-
 /// An adler32 hash generator type.
 #[derive(Clone)]
 pub struct Adler32 {
   a: u16,
   b: u16,
-  update: Adler32Imp,
 }
 
 impl Adler32 {
@@ -116,9 +112,6 @@ impl Adler32 {
 
   /// Constructs a new `Adler32` using existing checksum.
   ///
-  /// Potential overhead here due to runtime feature detection although in testing on 100k
-  /// and 10k random byte arrays it was not really noticeable.
-  ///
   /// # Examples
   /// ```rust
   /// use simd_adler32::Adler32;
@@ -129,13 +122,12 @@ impl Adler32 {
     Self {
       a: checksum as u16,
       b: (checksum >> 16) as u16,
-      update: get_imp(),
     }
   }
 
   /// Computes hash for supplied data and stores results in internal state.
   pub fn write(&mut self, data: &[u8]) {
-    let (a, b) = (self.update)(self.a, self.b, data);
+    let (a, b) = imp::call(self.a, self.b, data);
 
     self.a = a;
     self.b = b;
@@ -181,11 +173,7 @@ pub trait Adler32Hash {
 
 impl Default for Adler32 {
   fn default() -> Self {
-    Self {
-      a: 1,
-      b: 0,
-      update: get_imp(),
-    }
+    Self { a: 1, b: 0 }
   }
 }
 
