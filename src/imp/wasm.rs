@@ -6,18 +6,36 @@ pub fn get_imp() -> Option<Adler32Imp> {
 }
 
 #[inline]
-#[cfg(target_feature = "simd128")]
+#[cfg(all(
+  target_feature = "simd128",
+  any(
+    target_arch = "wasm32",
+    all(feature = "nightly", target_arch = "wasm64")
+  )
+))]
 fn get_imp_inner() -> Option<Adler32Imp> {
   Some(imp::update)
 }
 
 #[inline]
-#[cfg(not(target_feature = "simd128"))]
+#[cfg(not(all(
+  target_feature = "simd128",
+  any(
+    target_arch = "wasm32",
+    all(feature = "nightly", target_arch = "wasm64")
+  )
+)))]
 fn get_imp_inner() -> Option<Adler32Imp> {
   None
 }
 
-#[cfg(target_feature = "simd128")]
+#[cfg(all(
+  target_feature = "simd128",
+  any(
+    target_arch = "wasm32",
+    all(feature = "nightly", target_arch = "wasm64")
+  )
+))]
 mod imp {
   const MOD: u32 = 65521;
   const NMAX: usize = 5552;
