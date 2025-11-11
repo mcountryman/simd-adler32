@@ -82,7 +82,11 @@
   feature(stdarch_x86_avx512, avx512_target_feature)
 )]
 #![cfg_attr(
-  all(target_arch = "wasm64", target_feature = "simd128"),
+  all(
+    feature = "nightly",
+    target_arch = "wasm64",
+    target_feature = "simd128"
+  ),
   feature(simd_wasm64)
 )]
 
