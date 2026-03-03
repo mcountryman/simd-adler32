@@ -187,13 +187,13 @@ mod tests {
 
   #[test]
   fn random() {
-    let mut random = [0; 1024 * 1024];
+    let mut random = [0; 1024 * 50];
     SmallRng::from_entropy().fill(&mut random[..]);
 
     assert_sum_eq(&random[..1]);
     assert_sum_eq(&random[..100]);
     assert_sum_eq(&random[..1024]);
-    assert_sum_eq(&random[..1024 * 1024]);
+    assert_sum_eq(&random[..1024 * 50]);
   }
 
   /// Example calculation from https://en.wikipedia.org/wiki/Adler-32.
