@@ -25,10 +25,11 @@ path = "bench/variants.rs"
 harness = false
 
 [features]
-default = ["std", "const-generics"]
+default = ["std", "const-generics", "avx512"]
 std = []
 nightly = []
 const-generics = []
+avx512 = [] # Requires Rust 1.89 or later
 
 [dev-dependencies]
 rand = "0.8"
