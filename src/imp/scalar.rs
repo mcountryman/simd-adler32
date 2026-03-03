@@ -48,10 +48,14 @@ mod tests {
   }
 
   #[test]
-  fn mixed() {
+  fn mixed_short() {
     assert_eq!(adler32(&[1]), 2 | 2 << 16);
     assert_eq!(adler32(&[40]), 41 | 41 << 16);
+  }
 
+  #[test]
+  #[cfg_attr(miri, ignore)]
+  fn mixed_long() {
     assert_eq!(adler32(&[0xA5; 1024 * 1024]), 0xd5009ab1);
   }
 
