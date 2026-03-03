@@ -185,23 +185,27 @@ mod tests {
   use rand::{Rng, SeedableRng, rngs::SmallRng};
 
   #[test]
+  #[cfg_attr(miri, ignore)] // takes too long
   fn zeroes() {
     assert_sum_eq(&[]);
     assert_sum_eq(&[0]);
     assert_sum_eq(&[0, 0]);
     assert_sum_eq(&[0; 100]);
     assert_sum_eq(&[0; 1024]);
+    assert_sum_eq(&[0; 1024 - 5]); // non-power-of-2 to test remainder handling
     assert_sum_eq(&[0; 1024 * 1024 - 5]); // non-power-of-2 to test remainder handling
     assert_sum_eq(&[0; 1024 * 1024]);
   }
 
   #[test]
+  #[cfg_attr(miri, ignore)] // takes too long
   fn ones() {
     assert_sum_eq(&[]);
     assert_sum_eq(&[1]);
     assert_sum_eq(&[1, 1]);
     assert_sum_eq(&[1; 100]);
     assert_sum_eq(&[1; 1024]);
+    assert_sum_eq(&[1; 1024 - 5]); // non-power-of-2 to test remainder handling
     assert_sum_eq(&[1; 1024 * 1024 - 5]); // non-power-of-2 to test remainder handling
     assert_sum_eq(&[1; 1024 * 1024]);
   }
