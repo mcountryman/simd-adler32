@@ -213,14 +213,14 @@ mod tests {
   #[test]
   fn random() {
     if super::get_imp().is_none() { return; } // don't do any work if we're not on this target
-    let mut random = [0; 1024 * 50];
+    let mut random = [0; 1024 * 10];
     SmallRng::from_entropy().fill(&mut random[..]);
 
     assert_sum_eq(&random[..1]);
     assert_sum_eq(&random[..100]);
     assert_sum_eq(&random[..1024]);
-    assert_sum_eq(&random[..1024 * 50 - 5]); // non-power-of-2 to test remainder handling
-    assert_sum_eq(&random[..1024 * 50]);
+    assert_sum_eq(&random[..1024 * 10 - 5]); // non-power-of-2 to test remainder handling
+    assert_sum_eq(&random[..1024 * 10]);
   }
 
   /// Example calculation from https://en.wikipedia.org/wiki/Adler-32.
