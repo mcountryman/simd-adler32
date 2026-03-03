@@ -208,6 +208,7 @@ mod tests {
 
   #[test]
   fn random() {
+    if super::get_imp().is_none() { return; } // don't do any work if we're not on this target
     let mut random = [0; 1024 * 50];
     SmallRng::from_entropy().fill(&mut random[..]);
 
