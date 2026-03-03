@@ -200,6 +200,7 @@ mod tests {
     assert_sum_eq(&[0, 0]);
     assert_sum_eq(&[0; 100]);
     assert_sum_eq(&[0; 1024]);
+    assert_sum_eq(&[0; 1024 * 1024 - 5]); // non-power-of-2 to test remainder handling
     assert_sum_eq(&[0; 1024 * 1024]);
   }
 
@@ -210,6 +211,7 @@ mod tests {
     assert_sum_eq(&[1, 1]);
     assert_sum_eq(&[1; 100]);
     assert_sum_eq(&[1; 1024]);
+    assert_sum_eq(&[1; 1024 * 1024 - 5]); // non-power-of-2 to test remainder handling
     assert_sum_eq(&[1; 1024 * 1024]);
   }
 
@@ -221,6 +223,7 @@ mod tests {
     assert_sum_eq(&random[..1]);
     assert_sum_eq(&random[..100]);
     assert_sum_eq(&random[..1024]);
+    assert_sum_eq(&random[..1024 * 50 - 5]);  // non-power-of-2 to test remainder handling
     assert_sum_eq(&random[..1024 * 50]);
   }
 
