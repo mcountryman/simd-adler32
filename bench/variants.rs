@@ -3,13 +3,17 @@ use criterion::{
   Criterion, Throughput,
 };
 use rand::{thread_rng, RngCore};
-use simd_adler32::imp::{avx2, avx512, scalar, sse2, ssse3, wasm, Adler32Imp};
+use simd_adler32::imp::{avx2, avx512, avx512_vnni, scalar, sse2, ssse3, wasm, Adler32Imp};
 
 pub fn bench(c: &mut Criterion) {
   let mut data = [0; 100_000];
   let mut group = c.benchmark_group("variants");
 
   thread_rng().fill_bytes(&mut data[..]);
+
+  if let Some(update) = avx512_vnni::get_imp() {
+    bench_variant(&mut group, "avx512_vnni", &data, update);
+  }
 
   if let Some(update) = avx512::get_imp() {
     bench_variant(&mut group, "avx512", &data, update);
