@@ -171,3 +171,24 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - name: Build top-level only
         run: cargo build --target=thumbv6m-none-eabi --no-default-features
+
+  test-miri:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Install Miri
+        run: |
+          rustup toolchain install nightly --component miri
+          rustup override set nightly
+          cargo miri setup
+      - name: Run tests under miri
+        run: cargo +nightly miri test
+        env:
+          MIRIFLAGS: "-Ctarget-feature=+avx2,+avx512f,+avx512bw,+avx512vnni"
