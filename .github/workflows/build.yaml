@@ -188,7 +188,19 @@ jobs:
           rustup toolchain install nightly --component miri
           rustup override set nightly
           cargo miri setup
-      - name: Run tests under miri
-        run: cargo +nightly miri test
+      - name: Run scalar tests under miri
+        run: cargo +nightly miri test scalar
+      - name: Run sse2 tests under miri
+        run: cargo +nightly miri test sse2
+      - name: Run ssse3 tests under miri
+        run: cargo +nightly miri test ssse3
         env:
-          MIRIFLAGS: "-Ctarget-feature=+avx2,+avx512f,+avx512bw,+avx512vnni"
+          RUSTFLAGS: "-Ctarget-cpu=x86-64-v2"
+      - name: Run avx2 tests under miri
+        run: cargo +nightly miri test avx2
+        env:
+          RUSTFLAGS: "-Ctarget-cpu=x86-64-v3"
+      - name: Run avx512 tests under miri
+        run: cargo +nightly miri test --features=nightly avx512
+        env:
+          RUSTFLAGS: "-Ctarget-cpu=x86-64-v4"
