@@ -2,13 +2,13 @@ use criterion::{
   black_box, criterion_group, criterion_main, measurement::Measurement, BenchmarkGroup,
   Criterion, Throughput,
 };
-use rand::{thread_rng, RngCore};
+use rand::{RngCore, SeedableRng, rngs::SmallRng};
 
 pub fn bench(c: &mut Criterion) {
   let mut data = vec![0; 100_000];
   let mut group = c.benchmark_group("alts");
 
-  thread_rng().fill_bytes(&mut data[..]);
+  SmallRng::from_entropy().fill_bytes(&mut data[..]);
 
   bench_alt(&mut group, "adler", &data, |data| {
     let mut adler = adler::Adler32::new();

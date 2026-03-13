@@ -190,7 +190,7 @@ mod imp {
 
 #[cfg(test)]
 mod tests {
-  use rand::Rng;
+  use rand::{Rng, SeedableRng, rngs::SmallRng};
 
   #[test]
   fn zeroes() {
@@ -215,7 +215,7 @@ mod tests {
   #[test]
   fn random() {
     let mut random = [0; 1024 * 1024];
-    rand::thread_rng().fill(&mut random[..]);
+    SmallRng::from_entropy().fill(&mut random[..]);
 
     assert_sum_eq(&random[..1]);
     assert_sum_eq(&random[..100]);

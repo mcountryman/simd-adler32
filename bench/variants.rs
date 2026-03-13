@@ -2,14 +2,14 @@ use criterion::{
   black_box, criterion_group, criterion_main, measurement::Measurement, BenchmarkGroup,
   Criterion, Throughput,
 };
-use rand::{thread_rng, RngCore};
+use rand::{RngCore, SeedableRng, rngs::SmallRng};
 use simd_adler32::imp::{avx2, avx512, scalar, sse2, ssse3, wasm, Adler32Imp};
 
 pub fn bench(c: &mut Criterion) {
   let mut data = [0; 100_000];
   let mut group = c.benchmark_group("variants");
 
-  thread_rng().fill_bytes(&mut data[..]);
+  SmallRng::from_entropy().fill_bytes(&mut data[..]);
 
   if let Some(update) = avx512::get_imp() {
     bench_variant(&mut group, "avx512", &data, update);
