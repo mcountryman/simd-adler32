@@ -71,18 +71,32 @@ mod imp {
       return chunk;
     }
     let blocks = chunk.chunks_exact(BLOCK_SIZE);
+    let num_blocks = blocks.len() as u32;
     let blocks_remainder = blocks.remainder();
 
-    // Conversion of the code from Chromium zlib:
+    #[inline(always)]
+    fn reduce_add(v: uint32x4_t) -> u32 {
+      #[cfg(target_arch = "aarch64")]
+      unsafe {
+        vaddvq_u32(v)
+      }
+      #[cfg(not(target_arch = "aarch64"))]
+      unsafe {
+        let sum = vadd_u32(vget_low_u32(v), vget_high_u32(v));
+        vget_lane_u32(sum, 0).wrapping_add(vget_lane_u32(sum, 1))
+      }
+    }
+
+    // Conversion of the code from Chromium zlib with extra optimizations.
     // https://chromium.googlesource.com/chromium/src/third_party/+/main/zlib/adler32_simd.c
     unsafe {
-      // a and b accumulators are initially zero.
+      // a_v accumulates the raw sum of input bytes.
       let mut a_v: uint32x4_t = vdupq_n_u32(0);
+      // b_v accumulates the block-level prefix sum of a_v.
       let mut b_v: uint32x4_t = vdupq_n_u32(0);
-      // b_v[3] contains the last term (n) for the B part
-      b_v = vsetq_lane_u32(*a * (blocks.len() as u32), b_v, 3);
 
-      // Computing the unrolled prefix-sum
+      // Allocate 32 lanes to accumulate positional sums across all blocks.
+      // Each lane corresponds an index in the block from 0-31.
       let mut v_column_sum_1: uint16x8_t = vdupq_n_u16(0);
       let mut v_column_sum_2: uint16x8_t = vdupq_n_u16(0);
       let mut v_column_sum_3: uint16x8_t = vdupq_n_u16(0);
@@ -102,46 +116,74 @@ mod imp {
         // Adjacent elements in bytes1 are zipped, added, lengthened.
         a_v = vpadalq_u16(a_v, vpadalq_u8(vpaddlq_u8(bytes1), bytes2));
 
-        // Have to oscillate between low and high elements, since vaddw's first
-        // argument is already q-length.
+        // Update positional sums for B with widening addition. Have to oscillate
+        // between low and high elements, since vaddw's first argument is already
+        // q-length.
         v_column_sum_1 = vaddw_u8(v_column_sum_1, vget_low_u8(bytes1));
         v_column_sum_2 = vaddw_u8(v_column_sum_2, vget_high_u8(bytes1));
         v_column_sum_3 = vaddw_u8(v_column_sum_3, vget_low_u8(bytes2));
         v_column_sum_4 = vaddw_u8(v_column_sum_4, vget_high_u8(bytes2));
       }
 
-      // No more data/updates to a, so now we shake out all of the accumulated data
-      // Previous block was 32 indices ago, so multiply B to start
-      b_v = vshlq_n_u32(b_v, 5);
-
       // Then product-sum of each D column.
-      let w1: [u16; 4] = [32, 31, 30, 29];
-      let w2: [u16; 4] = [28, 27, 26, 25];
-      let w3: [u16; 4] = [24, 23, 22, 21];
-      let w4: [u16; 4] = [20, 19, 18, 17];
-      let w5: [u16; 4] = [16, 15, 14, 13];
-      let w6: [u16; 4] = [12, 11, 10, 9];
-      let w7: [u16; 4] = [8, 7, 6, 5];
-      let w8: [u16; 4] = [4, 3, 2, 1];
-      b_v = vmlal_u16(b_v, vget_low_u16(v_column_sum_1), vld1_u16(w1.as_ptr()));
-      b_v = vmlal_u16(b_v, vget_high_u16(v_column_sum_1), vld1_u16(w2.as_ptr()));
-      b_v = vmlal_u16(b_v, vget_low_u16(v_column_sum_2), vld1_u16(w3.as_ptr()));
-      b_v = vmlal_u16(b_v, vget_high_u16(v_column_sum_2), vld1_u16(w4.as_ptr()));
-      b_v = vmlal_u16(b_v, vget_low_u16(v_column_sum_3), vld1_u16(w5.as_ptr()));
-      b_v = vmlal_u16(b_v, vget_high_u16(v_column_sum_3), vld1_u16(w6.as_ptr()));
-      b_v = vmlal_u16(b_v, vget_low_u16(v_column_sum_4), vld1_u16(w7.as_ptr()));
-      b_v = vmlal_u16(b_v, vget_high_u16(v_column_sum_4), vld1_u16(w8.as_ptr()));
+      let w12 = vld1q_u16([32, 31, 30, 29, 28, 27, 26, 25].as_ptr());
+      let w34 = vld1q_u16([24, 23, 22, 21, 20, 19, 18, 17].as_ptr());
+      let w56 = vld1q_u16([16, 15, 14, 13, 12, 11, 10, 9].as_ptr());
+      let w78 = vld1q_u16([8, 7, 6, 5, 4, 3, 2, 1].as_ptr());
+      // Stage 1: multiply and shift together the low halves.
+      let b_final_1: uint32x4_t = vmlal_u16(
+        vmlal_u16(
+          vmlal_u16(
+            vmlal_u16(
+              vdupq_n_u32(0),
+              vget_low_u16(v_column_sum_1),
+              vget_low_u16(w12),
+            ),
+            vget_low_u16(v_column_sum_2),
+            vget_low_u16(w34),
+          ),
+          vget_low_u16(v_column_sum_3),
+          vget_low_u16(w56),
+        ),
+        vget_low_u16(v_column_sum_4),
+        vget_low_u16(w78),
+      );
+      // Stage 2: multiply and accumulate the high halves.
+      let b_final_2: uint32x4_t = vmlal_u16(
+        vmlal_u16(
+          vmlal_u16(
+            vmlal_u16(
+              vdupq_n_u32(0),
+              vget_high_u16(v_column_sum_1),
+              vget_high_u16(w12),
+            ),
+            vget_high_u16(v_column_sum_2),
+            vget_high_u16(w34),
+          ),
+          vget_high_u16(v_column_sum_3),
+          vget_high_u16(w56),
+        ),
+        vget_high_u16(v_column_sum_4),
+        vget_high_u16(w78),
+      );
+      // Add low and high halves together.
+      let b_final_v = vaddq_u32(b_final_1, b_final_2);
 
-      // Pyramid pairwise-add to get the final output.
-      // *a = vaddvq_u32(a_v) would also do the job.
-      let sum1: uint32x2_t = vpadd_u32(vget_low_u32(a_v), vget_high_u32(a_v));
-      let sum2: uint32x2_t = vpadd_u32(vget_low_u32(b_v), vget_high_u32(b_v));
-      let sum3: uint32x2_t = vpadd_u32(sum1, sum2);
-      *a += vget_lane_u32(sum3, 0);
-      *b += vget_lane_u32(sum3, 1);
+      let a_sum = reduce_add(a_v);
+      let b_sum = reduce_add(vaddq_u32(
+        // Multiply previous block values by 32x
+        vshlq_n_u32(b_v, 5),
+        b_final_v,
+      ));
 
-      *a %= MOD;
-      *b %= MOD;
+      let initial_a = *a;
+      let initial_b = *b;
+
+      *b = (initial_b
+        .wrapping_add(initial_a.wrapping_mul(num_blocks).wrapping_mul(32))
+        .wrapping_add(b_sum))
+        % MOD;
+      *a = (initial_a.wrapping_add(a_sum)) % MOD;
 
       blocks_remainder
     }
