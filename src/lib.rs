@@ -2,80 +2,41 @@
 //!
 //! A SIMD-accelerated Adler-32 hash algorithm implementation.
 //!
-//! ## Features
-//!
-//! - No dependencies
-//! - Support `no_std` (with `default-features = false`)
-//! - Runtime CPU feature detection (when `std` enabled)
-//! - Blazing fast performance on as many targets as possible (currently only x86 and x86_64)
-//! - Default to scalar implementation when simd not available
-//!
-//! ## Quick start
+//! ## Usage
 //!
 //! > Cargo.toml
-//!
 //! ```toml
 //! [dependencies]
 //! simd-adler32 = "*"
 //! ```
 //!
 //! > example.rs
-//!
 //! ```rust
-//! use simd_adler32::Adler32;
-//!
-//! let mut adler = Adler32::new();
-//! adler.update(b"rust is pretty cool, man");
-//! let hash = adler.finish();
-//!
-//! println!("{}", hash);
-//! // 1921255656
+//! simd_adler32::adler32(b"some data here");
 //! ```
 //!
-//! ## Feature flags
+//! ## Features
 //!
-//! * `std` - Enabled by default
+//! - `std` - Enables runtime cpu-feature detection.  If disabled the fastest
+//! implementation will be determined by the rustc [target-feature](https://doc.rust-lang.org/rustc/codegen-options/index.html?highlight=target-feature#target-feature)
+//! flag defined at build-time.
+//! - `nightly` - Enables nightly rust features that otherwise wouldn't be available.
 //!
-//! Enables std support, see [CPU Feature Detection](#cpu-feature-detection) for runtime
-//! detection support.
-//! * `nightly`
+//! ## MSRV
 //!
-//! Enables nightly features required for avx512 support.
+//! This crate's minimum supported rust version is `1.50.0`.  The intent here is to
+//! retain parity with miniz_oxide.
 //!
-//! * `const-generics` - Enabled by default
+//! ## Credits
 //!
-//! Enables const-generics support allowing for user-defined array hashing by value.  See
-//! [`Adler32Hash`] for details.
+//! Thank you to the contributors of the following projects.
 //!
-//! ## Support
-//!
-//! **CPU Features**
-//!
-//! | impl | arch             | feature |
-//! | ---- | ---------------- | ------- |
-//! | ✅   | `x86`, `x86_64`  | avx512  |
-//! | ✅   | `x86`, `x86_64`  | avx2    |
-//! | ✅   | `x86`, `x86_64`  | ssse3   |
-//! | ✅   | `x86`, `x86_64`  | sse2    |
-//! | 🚧   | `arm`, `aarch64` | neon    |
-//! |      | `wasm32`         | simd128 |
-//!
-//! **MSRV** `1.36.0`\*\*
-//!
-//! Minimum supported rust version is tested before a new version is published. [**] Feature
-//! `const-generics` needs to disabled to build on rustc versions `<1.51` which can be done
-//! by updating your dependency definition to the following.
-//!
-//! ## CPU Feature Detection
-//! simd-adler32 supports both runtime and compile time CPU feature detection using the
-//! `std::is_x86_feature_detected` macro when the `Adler32` struct is instantiated with
-//! the `new` fn.
-//!
-//! Without `std` feature enabled simd-adler32 falls back to compile time feature detection
-//! using `target-feature` or `target-cpu` flags supplied to rustc. See [https://rust-lang.github.io/packed_simd/perf-guide/target-feature/rustflags.html](https://rust-lang.github.io/packed_simd/perf-guide/target-feature/rustflags.html)
-//! for more information.
-//!
-//! Feature detection tries to use the fastest supported feature first.
+//! - [adler](https://github.com/jonas-schievink/adler)
+//! - [adler32](https://github.com/remram44/adler32-rs)
+//! - [crc32fast](https://github.com/srijs/rust-crc32fast)
+//! - [wuffs](https://github.com/google/wuffs)
+//! - [chromium](https://bugs.chromium.org/p/chromium/issues/detail?id=762564)
+//! - [zlib](https://zlib.net/)
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(
   all(feature = "nightly", any(target_arch = "x86", target_arch = "x86_64")),
