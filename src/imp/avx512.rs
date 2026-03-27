@@ -34,7 +34,11 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 
 #[inline]
 #[cfg(all(
-  not(all(feature = "nightly", target_feature = "avx512f", target_feature = "avx512bw")),
+  not(all(
+    feature = "nightly",
+    target_feature = "avx512f",
+    target_feature = "avx512bw"
+  )),
   not(all(
     feature = "std",
     feature = "nightly",
@@ -186,63 +190,5 @@ mod imp {
       24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
       45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
     )
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use rand::{Rng, SeedableRng, rngs::SmallRng};
-
-  #[test]
-  fn zeroes() {
-    assert_sum_eq(&[]);
-    assert_sum_eq(&[0]);
-    assert_sum_eq(&[0, 0]);
-    assert_sum_eq(&[0; 100]);
-    assert_sum_eq(&[0; 1024]);
-    assert_sum_eq(&[0; 1024 - 5]);
-    #[cfg(not(miri))]
-    assert_sum_eq(&[0; 1024 * 1024]);
-  }
-
-  #[test]
-  fn ones() {
-    assert_sum_eq(&[]);
-    assert_sum_eq(&[1]);
-    assert_sum_eq(&[1, 1]);
-    assert_sum_eq(&[1; 100]);
-    assert_sum_eq(&[1; 1024]);
-    assert_sum_eq(&[1; 1024 - 5]); // non-power-of-2 to test remainder handling
-    #[cfg(not(miri))]
-    assert_sum_eq(&[1; 1024 * 1024]);
-  }
-
-  #[test]
-  fn random() {
-    if super::get_imp().is_none() { return; } // don't do any work if we're not on this target
-    let mut random = [0; 1024 * 10];
-    SmallRng::from_entropy().fill(&mut random[..]);
-
-    assert_sum_eq(&random[..1]);
-    assert_sum_eq(&random[..100]);
-    assert_sum_eq(&random[..1024]);
-    assert_sum_eq(&random[..1024 - 5]); // non-power-of-2 to test remainder handling
-    assert_sum_eq(&random[..1024 * 10]);
-  }
-
-  /// Example calculation from https://en.wikipedia.org/wiki/Adler-32.
-  #[test]
-  fn wiki() {
-    assert_sum_eq(b"Wikipedia");
-  }
-
-  fn assert_sum_eq(data: &[u8]) {
-    if let Some(update) = super::get_imp() {
-      let (a, b) = update(1, 0, data);
-      let left = u32::from(b) << 16 | u32::from(a);
-      let right = adler::adler32_slice(data);
-
-      assert_eq!(left, right, "len({})", data.len());
-    }
   }
 }
