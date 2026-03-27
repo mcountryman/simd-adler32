@@ -1,3 +1,7 @@
+# garbage 
+.DS_Store
+.direnv/
+
 # editor
 .idea/
 .vscode/
