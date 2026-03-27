@@ -1,4 +1,4 @@
-use super::Update;
+use crate::Update;
 
 /// Resolves update implementation if CPU supports simd128 instructions.
 pub fn get_imp() -> Option<Update> {

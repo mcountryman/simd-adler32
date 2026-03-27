@@ -1,4 +1,4 @@
-use super::Update;
+use crate::Update;
 
 /// Resolves update implementation if CPU supports ssse3 instructions.
 pub fn get_imp() -> Option<Update> {
@@ -147,7 +147,7 @@ mod imp {
   unsafe fn reduce_add(v: __m128i) -> u32 {
     let hi = _mm_unpackhi_epi64(v, v);
     let sum = _mm_add_epi32(hi, v);
-    let hi = _mm_shuffle_epi32(sum, crate::imp::_MM_SHUFFLE(2, 3, 0, 1));
+    let hi = _mm_shuffle_epi32(sum, crate::arch::_MM_SHUFFLE(2, 3, 0, 1));
     let sum = _mm_add_epi32(sum, hi);
 
     _mm_cvtsi128_si32(sum) as _

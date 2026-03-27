@@ -1,4 +1,4 @@
-use super::Update;
+use crate::Update;
 
 #[cfg(target_feature = "neon")]
 pub fn get_imp() -> Option<Update> {

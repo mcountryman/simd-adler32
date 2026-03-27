@@ -1,4 +1,7 @@
-use simd_adler32::imp::*;
+use simd_adler32::arch::aarch64::*;
+use simd_adler32::arch::wasm::*;
+use simd_adler32::arch::x86_64::*;
+use simd_adler32::arch::*;
 
 #[test]
 #[cfg_attr(
@@ -35,8 +38,8 @@ fn neon() {
 
 #[test]
 #[cfg_attr(not(target_feature = "simd128"), ignore)]
-fn wasm() {
-  assert_adler_sums(wasm::get_imp());
+fn simd128() {
+  assert_adler_sums(simd128::get_imp());
 }
 
 #[test]
@@ -44,7 +47,7 @@ fn scalar() {
   assert_adler_sums(Some(scalar::update));
 }
 
-fn assert_adler_sums(update: Option<Update>) {
+fn assert_adler_sums(update: Option<fn(u16, u16, &[u8]) -> (u16, u16)>) {
   let update = update.expect("platform not supported");
 
   macro_rules! assert_adler_sum {

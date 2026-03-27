@@ -52,9 +52,9 @@
 )]
 
 #[doc(hidden)]
-pub mod imp;
+pub mod arch;
 
-use imp::{get_imp, Update};
+use arch::get_imp;
 
 /// An adler32 hash generator type.
 #[derive(Clone)]
@@ -151,3 +151,5 @@ impl Default for Adler32 {
     }
   }
 }
+
+type Update = fn(u16, u16, &[u8]) -> (u16, u16);
