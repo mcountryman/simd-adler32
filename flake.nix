@@ -19,18 +19,23 @@
       system:
       let
         pkgs = import nixpkgs { inherit system overlays; };
-        rust-bin = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
         overlays = [
           rust-overlay.overlays.default
         ];
+
+        packages = with pkgs; [
+          # utilities
+          just
+          wasmtime
+        ];
       in
       {
-        devShell = pkgs.mkShell {
-          packages = with pkgs; [
-            # rust
-            rust-bin
-            rust-analyzer
-          ];
+        devShells.default = pkgs.mkShell {
+          packages = packages ++ [ (pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml) ];
+        };
+
+        devShells.msrv = pkgs.mkShell {
+          packages = packages ++ [ (pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.msrv.toml) ];
         };
       }
     );

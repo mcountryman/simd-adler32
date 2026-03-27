@@ -1,5 +1,5 @@
 [toolchain]
 channel = "nightly-2025-10-21"
 profile = "default"
-components = ["rust-src", "rust-docs", "rust-analyzer", "clippy"]
-targets = ["aarch64-apple-darwin"]
+components = ["rust-src", "rust-docs", "rust-analyzer", "miri", "clippy"]
+targets = ["wasm32-wasip1"]
