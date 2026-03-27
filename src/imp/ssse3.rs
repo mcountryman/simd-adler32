@@ -1,13 +1,13 @@
-use super::Adler32Imp;
+use super::Update;
 
 /// Resolves update implementation if CPU supports ssse3 instructions.
-pub fn get_imp() -> Option<Adler32Imp> {
+pub fn get_imp() -> Option<Update> {
   get_imp_inner()
 }
 
 #[inline]
 #[cfg(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))]
-fn get_imp_inner() -> Option<Adler32Imp> {
+fn get_imp_inner() -> Option<Update> {
   if std::is_x86_feature_detected!("ssse3") {
     Some(imp::update)
   } else {
@@ -20,7 +20,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
   target_feature = "ssse3",
   not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
 ))]
-fn get_imp_inner() -> Option<Adler32Imp> {
+fn get_imp_inner() -> Option<Update> {
   Some(imp::update)
 }
 
@@ -29,7 +29,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
   not(target_feature = "ssse3"),
   not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
 ))]
-fn get_imp_inner() -> Option<Adler32Imp> {
+fn get_imp_inner() -> Option<Update> {
   None
 }
 

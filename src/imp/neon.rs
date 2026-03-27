@@ -1,12 +1,12 @@
-use super::Adler32Imp;
+use super::Update;
 
 #[cfg(target_feature = "neon")]
-pub fn get_imp() -> Option<Adler32Imp> {
+pub fn get_imp() -> Option<Update> {
   Some(imp::update)
 }
 
 #[cfg(not(target_feature = "neon"))]
-pub fn get_imp() -> Option<Adler32Imp> {
+pub fn get_imp() -> Option<Update> {
   None
 }
 

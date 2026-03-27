@@ -1,7 +1,7 @@
-use super::Adler32Imp;
+use super::Update;
 
 /// Resolves update implementation if CPU supports avx512f and avx512bw instructions.
-pub fn get_imp() -> Option<Adler32Imp> {
+pub fn get_imp() -> Option<Update> {
   get_imp_inner()
 }
 
@@ -11,7 +11,7 @@ pub fn get_imp() -> Option<Adler32Imp> {
   feature = "nightly",
   any(target_arch = "x86", target_arch = "x86_64")
 ))]
-fn get_imp_inner() -> Option<Adler32Imp> {
+fn get_imp_inner() -> Option<Update> {
   let has_avx512f = std::is_x86_feature_detected!("avx512f");
   let has_avx512bw = std::is_x86_feature_detected!("avx512bw");
 
@@ -28,7 +28,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
   all(target_feature = "avx512f", target_feature = "avx512bw"),
   not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
 ))]
-fn get_imp_inner() -> Option<Adler32Imp> {
+fn get_imp_inner() -> Option<Update> {
   Some(imp::update)
 }
 
@@ -45,7 +45,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
     any(target_arch = "x86", target_arch = "x86_64")
   ))
 ))]
-fn get_imp_inner() -> Option<Adler32Imp> {
+fn get_imp_inner() -> Option<Update> {
   None
 }
 

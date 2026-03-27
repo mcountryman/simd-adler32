@@ -25,7 +25,7 @@
 //! use simd_adler32::Adler32;
 //!
 //! let mut adler = Adler32::new();
-//! adler.write(b"rust is pretty cool, man");
+//! adler.update(b"rust is pretty cool, man");
 //! let hash = adler.finish();
 //!
 //! println!("{}", hash);
@@ -91,19 +91,16 @@
 )]
 
 #[doc(hidden)]
-pub mod hash;
-#[doc(hidden)]
 pub mod imp;
 
-pub use hash::*;
-use imp::{get_imp, Adler32Imp};
+use imp::{get_imp, Update};
 
 /// An adler32 hash generator type.
 #[derive(Clone)]
 pub struct Adler32 {
   a: u16,
   b: u16,
-  update: Adler32Imp,
+  update: Update,
 }
 
 impl Adler32 {
@@ -142,7 +139,7 @@ impl Adler32 {
   }
 
   /// Computes hash for supplied data and stores results in internal state.
-  pub fn write(&mut self, data: &[u8]) {
+  pub fn update(&mut self, data: &[u8]) {
     let (a, b) = (self.update)(self.a, self.b, data);
 
     self.a = a;
@@ -177,14 +174,11 @@ impl Adler32 {
 /// let hash = adler32(b"Adler-32");
 /// println!("{}", hash); // 800813569
 /// ```
-pub fn adler32<H: Adler32Hash>(hash: &H) -> u32 {
-  hash.hash()
-}
+pub fn adler32<H: AsRef<[u8]>>(hash: &H) -> u32 {
+  let mut hasher = Adler32::new();
 
-/// A Adler-32 hash-able type.
-pub trait Adler32Hash {
-  /// Feeds this value into `Adler32`.
-  fn hash(&self) -> u32;
+  hasher.update(hash.as_ref());
+  hasher.finish()
 }
 
 impl Default for Adler32 {
@@ -194,128 +188,5 @@ impl Default for Adler32 {
       b: 0,
       update: get_imp(),
     }
-  }
-}
-
-#[cfg(feature = "std")]
-pub mod read {
-  //! Reader-based hashing.
-  //!
-  //! # Example
-  //! ```rust
-  //! use std::io::Cursor;
-  //! use simd_adler32::read::adler32;
-  //!
-  //! let mut reader = Cursor::new(b"Hello there");
-  //! let hash = adler32(&mut reader).unwrap();
-  //!
-  //! println!("{}", hash) // 800813569
-  //! ```
-  use crate::Adler32;
-  use std::io::{Read, Result};
-
-  /// Compute Adler-32 hash on reader until EOF.
-  ///
-  /// # Example
-  /// ```rust
-  /// use std::io::Cursor;
-  /// use simd_adler32::read::adler32;
-  ///
-  /// let mut reader = Cursor::new(b"Hello there");
-  /// let hash = adler32(&mut reader).unwrap();
-  ///
-  /// println!("{}", hash) // 800813569
-  /// ```
-  pub fn adler32<R: Read>(reader: &mut R) -> Result<u32> {
-    let mut hash = Adler32::new();
-    let mut buf = [0; 4096];
-
-    loop {
-      match reader.read(&mut buf) {
-        Ok(0) => return Ok(hash.finish()),
-        Ok(n) => {
-          hash.write(&buf[..n]);
-        }
-        Err(err) => return Err(err),
-      }
-    }
-  }
-}
-
-#[cfg(feature = "std")]
-pub mod bufread {
-  //! BufRead-based hashing.
-  //!
-  //! Separate `BufRead` trait implemented to allow for custom buffer size optimization.
-  //!
-  //! # Example
-  //! ```rust
-  //! use std::io::{Cursor, BufReader};
-  //! use simd_adler32::bufread::adler32;
-  //!
-  //! let mut reader = Cursor::new(b"Hello there");
-  //! let mut reader = BufReader::new(reader);
-  //! let hash = adler32(&mut reader).unwrap();
-  //!
-  //! println!("{}", hash) // 800813569
-  //! ```
-  use crate::Adler32;
-  use std::io::{BufRead, ErrorKind, Result};
-
-  /// Compute Adler-32 hash on buf reader until EOF.
-  ///
-  /// # Example
-  /// ```rust
-  /// use std::io::{Cursor, BufReader};
-  /// use simd_adler32::bufread::adler32;
-  ///
-  /// let mut reader = Cursor::new(b"Hello there");
-  /// let mut reader = BufReader::new(reader);
-  /// let hash = adler32(&mut reader).unwrap();
-  ///
-  /// println!("{}", hash) // 800813569
-  /// ```
-  pub fn adler32<R: BufRead>(reader: &mut R) -> Result<u32> {
-    let mut hash = Adler32::new();
-
-    loop {
-      let consumed = match reader.fill_buf() {
-        Ok(buf) => {
-          if buf.is_empty() {
-            return Ok(hash.finish());
-          }
-
-          hash.write(buf);
-          buf.len()
-        }
-        Err(err) => match err.kind() {
-          ErrorKind::Interrupted => continue,
-          ErrorKind::UnexpectedEof => return Ok(hash.finish()),
-          _ => return Err(err),
-        },
-      };
-
-      reader.consume(consumed);
-    }
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  #[test]
-  fn test_from_checksum() {
-    let buf = b"rust is pretty cool man";
-    let sum = 0xdeadbeaf;
-
-    let mut simd = super::Adler32::from_checksum(sum);
-    let mut adler = adler::Adler32::from_checksum(sum);
-
-    simd.write(buf);
-    adler.write_slice(buf);
-
-    let simd = simd.finish();
-    let scalar = adler.checksum();
-
-    assert_eq!(simd, scalar);
   }
 }

@@ -6,7 +6,7 @@ pub mod sse2;
 pub mod ssse3;
 pub mod wasm;
 
-pub type Adler32Imp = fn(u16, u16, &[u8]) -> (u16, u16);
+pub type Update = fn(u16, u16, &[u8]) -> (u16, u16);
 
 #[inline]
 #[allow(non_snake_case)]
@@ -14,7 +14,7 @@ pub const fn _MM_SHUFFLE(z: u32, y: u32, x: u32, w: u32) -> i32 {
   ((z << 6) | (y << 4) | (x << 2) | w) as i32
 }
 
-pub fn get_imp() -> Adler32Imp {
+pub fn get_imp() -> Update {
   avx512::get_imp()
     .or_else(neon::get_imp)
     .or_else(avx2::get_imp)

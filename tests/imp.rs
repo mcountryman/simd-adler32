@@ -44,7 +44,7 @@ fn scalar() {
   assert_adler_sums(Some(scalar::update));
 }
 
-fn assert_adler_sums(update: Option<Adler32Imp>) {
+fn assert_adler_sums(update: Option<Update>) {
   let update = update.expect("platform not supported");
 
   macro_rules! assert_adler_sum {
