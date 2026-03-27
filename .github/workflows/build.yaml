@@ -112,9 +112,6 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            target: mips-unknown-linux-gnu
-            toolchain: stable
-          - os: ubuntu-latest
             target: arm-unknown-linux-gnueabi
             toolchain: stable
           - os: ubuntu-latest
