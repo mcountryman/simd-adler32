@@ -128,28 +128,56 @@ mod imp {
 
     let blocks = chunk.chunks_exact(BLOCK_SIZE);
     let blocks_remainder = blocks.remainder();
+    let num_blocks = blocks.len();
 
     let one_v = _mm512_set1_epi16(1);
     let zero_v = _mm512_setzero_si512();
     let weights = get_weights();
 
-    let p_v = (*a * blocks.len() as u32) as _;
+    let p_v = (*a * num_blocks as u32) as _;
     let mut p_v = _mm512_set_epi32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, p_v);
     let mut a_v = _mm512_setzero_si512();
     let mut b_v = _mm512_set_epi32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, *b as _);
+    let mut b_v_1 = _mm512_setzero_si512();
 
-    for block in blocks {
-      let block_ptr = block.as_ptr() as *const _;
-      let block = _mm512_loadu_si512(block_ptr);
+    let mut ptr = chunk.as_ptr();
+    let mut remaining = num_blocks;
+
+    // Remainder peeling: process one block if the count is odd, so the
+    // main loop can always process pairs of blocks.
+    if remaining % 2 != 0 {
+      let block = _mm512_loadu_si512(ptr as *const _);
+      ptr = ptr.add(BLOCK_SIZE);
+      remaining -= 1;
 
       p_v = _mm512_add_epi32(p_v, a_v);
-
       a_v = _mm512_add_epi32(a_v, _mm512_sad_epu8(block, zero_v));
       let mad = _mm512_maddubs_epi16(block, weights);
       b_v = _mm512_add_epi32(b_v, _mm512_madd_epi16(mad, one_v));
     }
 
+    // Main loop: process two 64-byte blocks per iteration for more ILP.
+    while remaining >= 2 {
+      let block0 = _mm512_loadu_si512(ptr as *const _);
+      let block1 = _mm512_loadu_si512(ptr.add(BLOCK_SIZE) as *const _);
+      ptr = ptr.add(BLOCK_SIZE * 2);
+      remaining -= 2;
+
+      // First block
+      p_v = _mm512_add_epi32(p_v, a_v);
+      a_v = _mm512_add_epi32(a_v, _mm512_sad_epu8(block0, zero_v));
+      let mad0 = _mm512_maddubs_epi16(block0, weights);
+      b_v = _mm512_add_epi32(b_v, _mm512_madd_epi16(mad0, one_v));
+
+      // Second block — accumulate into b_v_1 for ILP
+      p_v = _mm512_add_epi32(p_v, a_v);
+      a_v = _mm512_add_epi32(a_v, _mm512_sad_epu8(block1, zero_v));
+      let mad1 = _mm512_maddubs_epi16(block1, weights);
+      b_v_1 = _mm512_add_epi32(b_v_1, _mm512_madd_epi16(mad1, one_v));
+    }
+
     b_v = _mm512_add_epi32(b_v, _mm512_slli_epi32(p_v, 6));
+    b_v = _mm512_add_epi32(b_v, b_v_1);
 
     *a += reduce_add(a_v);
     *b = reduce_add(b_v);
