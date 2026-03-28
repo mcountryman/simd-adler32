@@ -1,45 +1,63 @@
-use simd_adler32::arch::aarch64::*;
-use simd_adler32::arch::wasm::*;
-use simd_adler32::arch::x86_64::*;
 use simd_adler32::arch::*;
 
-#[test]
-#[cfg_attr(
-  not(all(target_feature = "avx512f", target_feature = "avx512bw")),
-  ignore
-)]
-fn avx512() {
-  assert_adler_sums(avx512::get_imp());
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod x86_64 {
+  use super::*;
+  use simd_adler32::arch::x86_64::*;
+
+  #[cfg(any(feature = "msrv_1_89_0", feature = "nightly"))]
+  #[test]
+  #[cfg_attr(
+    not(all(target_feature = "avx512f", target_feature = "avx512bw")),
+    ignore
+  )]
+  fn avx512() {
+    assert_adler_sums(avx512::get());
+  }
+
+  #[test]
+  #[cfg_attr(not(target_feature = "avx2"), ignore)]
+  fn avx2() {
+    assert_adler_sums(avx2::get());
+  }
+
+  #[test]
+  #[cfg_attr(not(target_feature = "sse2"), ignore)]
+  fn sse2() {
+    assert_adler_sums(sse2::get());
+  }
+
+  #[test]
+  #[cfg_attr(not(target_feature = "ssse3"), ignore)]
+  fn ssse3() {
+    assert_adler_sums(ssse3::get());
+  }
 }
 
-#[test]
-#[cfg_attr(not(target_feature = "avx2"), ignore)]
-fn avx2() {
-  assert_adler_sums(avx2::get_imp());
+#[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+// neon is the only specialization and requires nightly or 1.61.0
+#[cfg(any(feature = "msrv_1_61_0", feature = "nightly"))]
+mod aarch64 {
+  use super::*;
+  use simd_adler32::arch::aarch64::*;
+
+  #[test]
+  #[cfg_attr(not(target_feature = "neon"), ignore)]
+  fn neon() {
+    assert_adler_sums(neon::get());
+  }
 }
 
-#[test]
-#[cfg_attr(not(target_feature = "sse2"), ignore)]
-fn sse2() {
-  assert_adler_sums(sse2::get_imp());
-}
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+mod wasm {
+  use super::*;
+  use simd_adler32::arch::wasm::*;
 
-#[test]
-#[cfg_attr(not(target_feature = "ssse3"), ignore)]
-fn ssse3() {
-  assert_adler_sums(ssse3::get_imp());
-}
-
-#[test]
-#[cfg_attr(not(target_feature = "neon"), ignore)]
-fn neon() {
-  assert_adler_sums(neon::get_imp());
-}
-
-#[test]
-#[cfg_attr(not(target_feature = "simd128"), ignore)]
-fn simd128() {
-  assert_adler_sums(simd128::get_imp());
+  #[test]
+  #[cfg_attr(not(target_feature = "simd128"), ignore)]
+  fn simd128() {
+    assert_adler_sums(simd128::get());
+  }
 }
 
 #[test]

@@ -18,26 +18,47 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
+        inherit (builtins) fromTOML readFile;
+
         pkgs = import nixpkgs { inherit system overlays; };
-        overlays = [
-          rust-overlay.overlays.default
-        ];
+        overlays = [ rust-overlay.overlays.default ];
 
-        packages = with pkgs; [
-          # utilities
-          just
-          wasmtime
-        ];
+        mkRustupToolchainShell =
+          toolchain:
+
+          pkgs.mkShell {
+            packages = with pkgs; [
+              # utilities
+              just
+              wasmtime
+
+              # rust
+              (rust-bin.fromRustupToolchain ((fromTOML (readFile ./rust-toolchain.toml)).toolchain // toolchain))
+            ];
+          };
       in
-      {
-        devShells.default = pkgs.mkShell {
-          packages = packages ++ [ (pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml) ];
+      rec {
+        devShells.msrv = devShells.v1_50_0;
+        devShells.default = mkRustupToolchainShell {
+          components = [
+            "rust-src"
+            "rust-docs"
+            "rust-analyzer"
+            "miri"
+            "clippy"
+          ];
+
+          targets = [
+            "wasm32-wasip1"
+            "aarch64-unknown-linux-gnu"
+            "x86_64-unknown-linux-gnu"
+          ];
         };
 
-        devShells.msrv = pkgs.mkShell {
-          packages = packages ++ [ (pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.msrv.toml) ];
-        };
+        devShells.v1_50_0 = mkRustupToolchainShell { channel = "1.50.0"; };
+        devShells.v1_59_0 = mkRustupToolchainShell { channel = "1.59.0"; };
+        devShells.v1_61_0 = mkRustupToolchainShell { channel = "1.61.0"; };
+        devShells.v1_89_0 = mkRustupToolchainShell { channel = "1.89.0"; };
       }
     );
-
 }

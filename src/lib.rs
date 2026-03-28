@@ -38,23 +38,12 @@
 //! - [chromium](https://bugs.chromium.org/p/chromium/issues/detail?id=762564)
 //! - [zlib](https://zlib.net/)
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(
-  all(feature = "nightly", any(target_arch = "x86", target_arch = "x86_64")),
-  feature(stdarch_x86_avx512, avx512_target_feature)
-)]
-#![cfg_attr(
-  all(
-    feature = "nightly",
-    target_arch = "wasm64",
-    target_feature = "simd128"
-  ),
-  feature(simd_wasm64)
-)]
+#![cfg_attr(feature = "nightly", feature(stdsimd))]
+#![cfg_attr(feature = "nightly", feature(simd_wasm64))]
+#![cfg_attr(feature = "nightly", feature(stdarch_x86_avx512))]
+#![cfg_attr(feature = "nightly", feature(avx512_target_feature))]
 
-#[doc(hidden)]
 pub mod arch;
-
-use arch::get_imp;
 
 /// An adler32 hash generator type.
 #[derive(Clone)]
@@ -95,7 +84,7 @@ impl Adler32 {
     Self {
       a: checksum as u16,
       b: (checksum >> 16) as u16,
-      update: get_imp(),
+      update: arch::best(),
     }
   }
 
@@ -147,7 +136,7 @@ impl Default for Adler32 {
     Self {
       a: 1,
       b: 0,
-      update: get_imp(),
+      update: arch::best(),
     }
   }
 }
