@@ -21,6 +21,10 @@ test-miri *args:
 test-wasm:
     RUSTFLAGS="${RUSTFLAGS:-} -C target-feature=+simd128" cargo build --target wasm32-wasip1 --tests
     wasmtime run "$(ls -t target/wasm32-wasip1/debug/deps/imp-*.wasm | head -1)" 
+
+[working-directory: 'fuzz']
+fuzz target:
+    RUSTFLAGS="${RUSTFLAGS:-} -C target-cpu=native" cargo fuzz run {{ target }}
     
 # Run a command on the target host in `remote_dir`
 ssh-run target +cmd: (ssh-copy target)

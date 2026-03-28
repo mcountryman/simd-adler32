@@ -3,41 +3,11 @@
 name = "simd-adler32-fuzz"
 version = "0.0.0"
 publish = false
-edition = "2018"
+edition = "2024"
 
 [package.metadata]
 cargo-fuzz = true
 
 [dependencies]
+simd-adler32 = { path = ".." }
 libfuzzer-sys = "*"
-
-[dependencies.simd-adler32]
-path = ".."
-
-# Prevent this from interfering with workspaces
-[workspace]
-members = ["."]
-
-[[bin]]
-name = "avx2"
-path = "targets/avx2.rs"
-doc = false
-test = false
-
-[[bin]]
-name = "avx512"
-path = "targets/avx512.rs"
-doc = false
-test = false
-
-[[bin]]
-name = "sse2"
-path = "targets/sse2.rs"
-doc = false
-test = false
-
-[[bin]]
-name = "ssse3"
-path = "targets/ssse3.rs"
-doc = false
-test = false

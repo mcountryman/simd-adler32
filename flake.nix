@@ -32,6 +32,7 @@
               just
               gnuplot
               wasmtime
+              cargo-fuzz
 
               # rust
               (rust-bin.fromRustupToolchain ((fromTOML (readFile ./rust-toolchain.toml)).toolchain // toolchain))
