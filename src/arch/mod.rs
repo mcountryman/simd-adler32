@@ -9,7 +9,7 @@ pub mod x86_64;
 
 use crate::Update;
 
-/// Returns the Adler-32 sums using the best specialized implementation.
+/// Returns Adler-32 sums for the given data and starting sums.
 pub fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
   use core::mem;
   use core::sync::atomic::{AtomicPtr, Ordering};
@@ -30,7 +30,7 @@ pub fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
   update(a, b, data)
 }
 
-/// Returns the best specialized implementation of [Update].
+/// Returns the best specialized implementation of [update].
 #[inline]
 pub fn best() -> Update {
   let best = None;

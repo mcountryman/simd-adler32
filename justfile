@@ -3,6 +3,9 @@ remote_dir := "simd-adler32"
 build *args:
     cargo build --release {{ args }}
 
+check *args:
+    cargo clippy {{ args }}
+
 [working-directory: 'bench']
 bench *args:
     RUSTFLAGS="${RUSTFLAGS:-} -C target-cpu=native" cargo bench {{ args }}

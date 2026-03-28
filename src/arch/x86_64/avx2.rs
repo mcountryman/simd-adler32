@@ -26,6 +26,12 @@ pub fn get() -> Option<Update> {
   }
 }
 
+/// Returns Adler-32 sums for the given data and starting sums.
+///
+/// # Safety
+///
+/// This function should only be called when `avx2` CPU instructions are
+/// available.
 #[target_feature(enable = "avx2")]
 pub unsafe fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
   let mut a = a as u32;

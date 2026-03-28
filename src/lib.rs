@@ -18,8 +18,8 @@
 //! ## Features
 //!
 //! - `std` - Enables runtime cpu-feature detection.  If disabled the fastest
-//! implementation will be determined by the rustc [target-feature](https://doc.rust-lang.org/rustc/codegen-options/index.html?highlight=target-feature#target-feature)
-//! flag defined at build-time.
+//!   implementation will be determined by the rustc [target-feature](https://doc.rust-lang.org/rustc/codegen-options/index.html?highlight=target-feature#target-feature)
+//!   flag defined at build-time.
 //! - `nightly` - Enables nightly rust features that otherwise wouldn't be available.
 //!
 //! ## MSRV

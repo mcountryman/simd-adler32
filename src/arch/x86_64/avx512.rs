@@ -27,6 +27,12 @@ pub fn get() -> Option<Update> {
   }
 }
 
+/// Returns Adler-32 sums for the given data and starting sums.
+///
+/// # Safety
+///
+/// This function should only be called when `avx512f` and `avx512bw` CPU
+/// instructions are available.
 #[target_feature(enable = "avx512f")]
 #[target_feature(enable = "avx512bw")]
 pub unsafe fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
@@ -132,9 +138,8 @@ unsafe fn reduce_add_256(v: __m256i) -> u32 {
   let hi = _mm_shuffle_epi32(sum, _MM_SHUFFLE(2, 3, 0, 1));
 
   let sum = _mm_add_epi32(sum, hi);
-  let sum = _mm_cvtsi128_si32(sum) as _;
 
-  sum
+  _mm_cvtsi128_si32(sum) as _
 }
 
 #[inline(always)]

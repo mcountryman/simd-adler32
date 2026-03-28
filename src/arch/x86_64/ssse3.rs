@@ -26,6 +26,12 @@ pub fn get() -> Option<Update> {
   }
 }
 
+/// Returns Adler-32 sums for the given data and starting sums.
+///
+/// # Safety
+///
+/// This function should only be called when `ssse2` CPU instructions are
+/// available.
 #[inline]
 #[target_feature(enable = "ssse3")]
 pub unsafe fn update(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
