@@ -30,6 +30,7 @@
             packages = with pkgs; [
               # utilities
               just
+              gnuplot
               wasmtime
 
               # rust

@@ -8,7 +8,6 @@ keywords = ["simd", "avx2", "ssse3", "adler", "adler32"]
 categories = ["algorithms", "no-std"]
 repository = "https://github.com/mcountryman/simd-adler32"
 description = "A SIMD-accelerated Adler-32 hash algorithm implementation."
-exclude = ["bench"]
 
 [package.metadata]
 msrv = "1.50.0"

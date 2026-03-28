@@ -4,6 +4,7 @@
 
 # editor
 .idea/
+.helix/
 .vscode/
 
 # fuzz

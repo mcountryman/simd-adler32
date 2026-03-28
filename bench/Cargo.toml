@@ -1,0 +1,21 @@
+[package]
+name = "bench"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+adler2 = "2.0.1"
+criterion = { version = "0.8.2", default-features = false }
+fastrand = "2.3.0"
+simd-adler32 = { path = ".." }
+
+[features]
+default = [
+  "criterion/rayon",
+  "criterion/plotters",
+  "criterion/cargo_bench_support",
+]
+
+[[bench]]
+name = "update"
+harness = false
