@@ -50,7 +50,6 @@ pub mod arch;
 pub struct Adler32 {
   a: u16,
   b: u16,
-  update: Update,
 }
 
 impl Adler32 {
@@ -84,13 +83,12 @@ impl Adler32 {
     Self {
       a: checksum as u16,
       b: (checksum >> 16) as u16,
-      update: arch::best(),
     }
   }
 
   /// Computes hash for supplied data and stores results in internal state.
   pub fn update(&mut self, data: &[u8]) {
-    let (a, b) = (self.update)(self.a, self.b, data);
+    let (a, b) = arch::update(self.a, self.b, data);
 
     self.a = a;
     self.b = b;
@@ -133,11 +131,7 @@ pub fn adler32<H: AsRef<[u8]>>(hash: &H) -> u32 {
 
 impl Default for Adler32 {
   fn default() -> Self {
-    Self {
-      a: 1,
-      b: 0,
-      update: arch::best(),
-    }
+    Self { a: 1, b: 0 }
   }
 }
 
