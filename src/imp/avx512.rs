@@ -8,7 +8,7 @@ pub fn get_imp() -> Option<Adler32Imp> {
 #[inline]
 #[cfg(all(
   feature = "std",
-  feature = "nightly",
+  any(feature = "nightly", feature = "avx512"),
   any(target_arch = "x86", target_arch = "x86_64")
 ))]
 fn get_imp_inner() -> Option<Adler32Imp> {
@@ -24,7 +24,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 
 #[inline]
 #[cfg(all(
-  feature = "nightly",
+  any(feature = "nightly", feature = "avx512"),
   all(target_feature = "avx512f", target_feature = "avx512bw"),
   not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
 ))]
@@ -34,10 +34,10 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 
 #[inline]
 #[cfg(all(
-  not(all(feature = "nightly", target_feature = "avx512f", target_feature = "avx512bw")),
+  not(all(any(feature = "nightly", feature = "avx512"), target_feature = "avx512f", target_feature = "avx512bw")),
   not(all(
     feature = "std",
-    feature = "nightly",
+    any(feature = "nightly", feature = "avx512"),
     any(target_arch = "x86", target_arch = "x86_64")
   ))
 ))]
@@ -46,7 +46,7 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 }
 
 #[cfg(all(
-  feature = "nightly",
+  any(feature = "nightly", feature = "avx512"),
   any(target_arch = "x86", target_arch = "x86_64"),
   any(
     feature = "std",
