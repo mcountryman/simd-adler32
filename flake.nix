@@ -36,7 +36,14 @@
               cargo-msrv
 
               # rust
-              (rust-bin.fromRustupToolchain ((fromTOML (readFile ./rust-toolchain.toml)).toolchain // toolchain))
+              (
+                rust-bin.fromRustupToolchain {
+                  channel = "nightly-2025-10-21";
+                  profile = "default";
+                  components = [ "rust-src" ];
+                }
+                // toolchain
+              )
             ];
           };
       in

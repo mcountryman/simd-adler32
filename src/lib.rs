@@ -38,10 +38,6 @@
 //! - [chromium](https://bugs.chromium.org/p/chromium/issues/detail?id=762564)
 //! - [zlib](https://zlib.net/)
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(feature = "nightly", feature(stdsimd))]
-#![cfg_attr(feature = "nightly", feature(simd_wasm64))]
-#![cfg_attr(feature = "nightly", feature(stdarch_x86_avx512))]
-#![cfg_attr(feature = "nightly", feature(avx512_target_feature))]
 
 pub mod arch;
 

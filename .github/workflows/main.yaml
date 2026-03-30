@@ -1,0 +1,269 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Run tests on various platforms and targets
+  test:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: macos-latest
+          - runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+          - runs-on: windows-latest
+            target: x86_64-pc-windows-gnu
+          - runs-on: ubuntu-latest
+          # Emulated via cross
+          - runs-on: ubuntu-latest
+            target: powerpc64-unknown-linux-gnu
+          - runs-on: ubuntu-latest
+            target: s390x-unknown-linux-gnu
+    env:
+      CARGO: "cargo"
+      CROSS_VERSION: 0.2.5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Setup cargo cross
+        if: matrix.runs-on == 'ubuntu-latest' && matrix.target != '' && env.ACT == ''
+        run: |
+          # Building cross takes a hot minute.  Similar to https://github.com/BurntSushi/memchr/
+          # we're pulling from GitHub releases.
+          curl -LO "https://github.com/cross-rs/cross/releases/download/v$CROSS_VERSION/cross-x86_64-unknown-linux-musl.tar.gz"
+          tar xf cross-x86_64-unknown-linux-musl.tar.gz
+
+          echo "CARGO=$PWD/cross" >> $GITHUB_ENV
+          echo "CROSS_BUILD_TARGET=${{ matrix.target }}" >> $GITHUB_ENV
+          echo "CROSS_CONTAINER_OPTS=--platform linux/amd64" >> $GITHUB_ENV
+
+      # Attempt to use target-cpu features as a driver for `target_feature` cfg
+      # checks.
+      #
+      # The hope here is that whatever hypervisor that's running this action
+      # conveys enough information to rust to get _most_ of our tests running.
+      - if: ${{ !matrix.target || matrix.target == '' }}
+        run: echo "RUSTFLAGS=-Ctarget-cpu=native" >> $GITHUB_ENV
+
+      # Set the default cargo build target when specified
+      - if: matrix.target != ''
+        shell: bash
+        run: echo 'CARGO_BUILD_TARGET=${{ matrix.target }}' >> $GITHUB_ENV
+
+      - name: Run tests
+        run: ${{ env.CARGO }} test --verbose --tests
+
+      - name: Run tests with `no_std`
+        run: ${{ env.CARGO }} test --verbose --no-default-features --features msrv_1_89_0
+
+      - name: Setup Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Run tests with `nightly`
+        run: ${{ env.CARGO }} test --verbose
+
+      - name: Run tests with `no_std` and `nightly`
+        run: ${{ env.CARGO }} test --verbose --no-default-features --features msrv_1_89_0
+
+  # Run simd128 tests using wasmtime
+  test-wasm:
+    runs-on: ubuntu-latest
+    env:
+      WASMTIME_VERSION: 43.0.0
+
+      RUSTFLAGS: -Ctarget-feature=+simd128
+      CARGO_BUILD_TARGET: wasm32-wasip1
+      CARGO_TARGET_WASM32_WASIP1_RUNNER: wasmtime run --wasm simd --
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          target: wasm32-wasip1
+          toolchain: stable
+
+      - name: Setup wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version "v${{ env.WASMTIME_VERSION }}"
+          echo "PATH=$HOME/.wasmtime/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Run tests
+        run: cargo test --tests --verbose
+
+      - name: Run tests with `no_std`
+        run: cargo test --tests --verbose --no-default-features --features msrv_1_89_0
+
+  # Run x86_64 tests under Intel Software Development Emulator
+  #
+  # The intent here is to emulate more advanced x86_64 features that may or may
+  # not work on Github action runners.
+  test-intel-sde:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Intel SDE
+        run: |
+          curl -LO "https://downloadmirror.intel.com/915934/sde-external-10.8.0-2026-03-15-lin.tar.xz"
+          tar -xf sde-external-10.8.0-2026-03-15-lin.tar.xz
+          ls -la sde-external-10.8.0-2026-03-15-lin
+          echo "PATH=$PWD/sde-external-10.8.0-2026-03-15-lin:$PATH" >> $GITHUB_ENV
+          # Throwing the `-future` CPU option on for the time being.  Maybe in
+          # the future we'd want to see how specific CPUs behave according to
+          # SDE but, for the time being I just want to see that avx512 is
+          # working.
+          echo "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER=sde64 -future --" >> $GITHUB_ENV
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          target: x86_64-unknown-linux-gnu
+
+      - name: Run tests
+        env:
+          RUSTFLAGS: "-Ctarget-feature=+avx512f,+avx512bw,+avx2,+sse2,+ssse3"
+          CARGO_BUILD_TARGET: x86_64-unknown-linux-gnu
+        run: cargo test --tests --verbose
+
+  # Run tests using miri against specialized implementations.
+  test-miri:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tests: avx512
+            target-feature: +avx512f,+avx512bw
+            runs-on: ubuntu-latest
+          - tests: avx2
+            target-feature: +avx2
+            runs-on: ubuntu-latest
+          - tests: sse2
+            target-feature: +sse2
+            runs-on: ubuntu-latest
+          - tests: ssse3
+            target-feature: +ssse3
+            runs-on: ubuntu-latest
+          - tests: --lib
+            runs-on: ubuntu-latest
+          # # Currently not possible due to missing aarch64 intrinsics : https://github.com/rust-lang/miri/issues/3172
+          # - tests: neon
+          #   target-feature: +neon
+          #   runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: miri
+
+      - name: Setup Miri
+        run: cargo miri setup --verbose
+
+      - if: matrix.target-feature != ''
+        run: echo "RUSTFLAGS=-Ctarget-feature=${{ matrix.target-feature }}" >> $GITHUB_ENV
+
+      - name: Run miri tests
+        run: cargo miri test ${{ matrix.tests }} --verbose
+
+  # Test successful compilation on MSRV
+  #
+  # Ensure that we can compile against MSRV with various MSRV feature levels
+  # toggled.
+  test-msrv:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - channel: 1.50.0
+            features: std
+          - channel: 1.54.0
+            features: std,msrv_1_54_0
+          - channel: 1.61.0
+            features: std,msrv_1_61_0
+          - channel: 1.89.0
+            features: std,msrv_1_89_0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          targets: wasm32-unknown-unknown,x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+          toolchain: ${{ matrix.channel }}
+
+      - name: Build `wasm32-unknown-unknown`
+        run: |
+          cargo build --target wasm32-unknown-unknown --no-default-features --features ${{ matrix.features }} --verbose
+
+      - name: Build `x86_64-unknown-linux-gnu`
+        run: |
+          cargo build --target x86_64-unknown-linux-gnu --no-default-features --features ${{ matrix.features }} --verbose
+
+      - name: Build `aarch64-unknown-linux-gnu`
+        run: |
+          cargo build --target aarch64-unknown-linux-gnu --no-default-features --features ${{ matrix.features }} --verbose
+
+  # Format and complain if code-style doesn't conform
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: Run rustfmt
+        run: |
+          cargo fmt --all -- --check
+
+  # Lint against various targets
+  #
+  # Specializations are `target_arch` gated so we'll want to do a lint for
+  # wasm, x86_64, and aarch64.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-unknown-unknown,x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+          components: clippy
+
+      - name: Lint `wasm32-unknown-unknown`
+        run: |
+          cargo clippy --target wasm32-unknown-unknown --all-features -- -Dwarnings
+
+      - name: Lint `x86_64-unknown-linux-gnu`
+        run: |
+          cargo clippy --target x86_64-unknown-linux-gnu --all-features -- -Dwarnings
+
+      - name: Lint `aarch64-unknown-linux-gnu`
+        run: |
+          cargo clippy --target aarch64-unknown-linux-gnu --all-features -- -Dwarnings

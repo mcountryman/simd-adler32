@@ -20,9 +20,9 @@ opt-level = 2
 default = ["std", "msrv_1_89_0"]
 # Enable features that require rust-std
 std = []
-# Enable features that require nightly rust
-nightly = []
 # Enable features that require rustc >= 1.89.0
 msrv_1_89_0 = ["msrv_1_61_0"]
 # Enable features that require rustc >= 1.61.0
-msrv_1_61_0 = []
+msrv_1_61_0 = ["msrv_1_54_0"]
+# Enable features that require rustc >= 1.54.0
+msrv_1_54_0 = []

@@ -5,7 +5,7 @@ mod x86_64 {
   use super::*;
   use simd_adler32::arch::x86_64::*;
 
-  #[cfg(any(feature = "msrv_1_89_0", feature = "nightly"))]
+  #[cfg(feature = "msrv_1_89_0")]
   #[test]
   #[cfg_attr(
     not(all(target_feature = "avx512f", target_feature = "avx512bw")),
@@ -36,7 +36,7 @@ mod x86_64 {
 
 #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
 // neon is the only specialization and requires nightly or 1.61.0
-#[cfg(any(feature = "msrv_1_61_0", feature = "nightly"))]
+#[cfg(feature = "msrv_1_61_0")]
 mod aarch64 {
   use super::*;
   use simd_adler32::arch::aarch64::*;

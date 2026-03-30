@@ -1,5 +1,5 @@
 pub mod avx2;
-#[cfg(any(feature = "msrv_1_89_0", feature = "nightly"))]
+#[cfg(feature = "msrv_1_89_0")]
 pub mod avx512;
 pub mod sse2;
 pub mod ssse3;
@@ -9,7 +9,7 @@ use crate::Update;
 pub fn best() -> Option<Update> {
   let best = None;
 
-  #[cfg(any(feature = "msrv_1_89_0", feature = "nightly"))]
+  #[cfg(feature = "msrv_1_89_0")]
   let best = best.or_else(avx512::get);
 
   best
