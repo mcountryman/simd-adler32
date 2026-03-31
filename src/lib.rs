@@ -20,7 +20,9 @@
 //! - `std` - Enables runtime cpu-feature detection.  If disabled the fastest
 //!   implementation will be determined by the rustc [target-feature](https://doc.rust-lang.org/rustc/codegen-options/index.html?highlight=target-feature#target-feature)
 //!   flag defined at build-time.
-//! - `nightly` - Enables nightly rust features that otherwise wouldn't be available.
+//! - `msrv_1_89_0` - Raises the MSRV to 1.89.0.  Enables `avx512` implementation
+//! - `msrv_1_61_0` - Raises the MSRV to 1.61.0.  Enables `neon` implementation
+//! - `msrv_1_54_0` - Raises the MSRV to 1.54.0.  Enables `simd128` implementation
 //!
 //! ## MSRV
 //!
