@@ -82,6 +82,10 @@
   feature(stdarch_x86_avx512, avx512_target_feature)
 )]
 #![cfg_attr(
+  all(feature = "nightly", target_arch = "arm"),
+  feature(stdarch_arm_neon_intrinsics)
+)]
+#![cfg_attr(
   all(
     feature = "nightly",
     target_arch = "wasm64",
