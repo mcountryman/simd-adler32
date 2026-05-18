@@ -46,10 +46,12 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             toolchain: stable
-          - os: macos-latest
+          - os: macos-26-intel
             target: x86_64-apple-darwin
             toolchain: stable
-            # TODO: also aarch64 / M1
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            toolchain: stable
           - os: windows-latest
             target: x86_64-pc-windows-gnu
             toolchain: stable
@@ -60,6 +62,9 @@ jobs:
           - os: ubuntu-latest
             deps: sudo apt-get update ; sudo apt install gcc-multilib
             target: i686-unknown-linux-gnu
+            toolchain: nightly
+          - os: macos-latest
+            target: aarch64-apple-darwin
             toolchain: nightly
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
