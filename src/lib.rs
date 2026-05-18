@@ -312,7 +312,7 @@ mod tests {
     let sum = 0xdeadbeaf;
 
     let mut simd = super::Adler32::from_checksum(sum);
-    let mut adler = adler::Adler32::from_checksum(sum);
+    let mut adler = adler2::Adler32::from_checksum(sum);
 
     simd.write(buf);
     adler.write_slice(buf);
