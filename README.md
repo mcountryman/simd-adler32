@@ -18,7 +18,8 @@ A SIMD-accelerated Adler-32 hash algorithm implementation.
 - No dependencies
 - Support `no_std` (with `default-features = false`)
 - Runtime CPU feature detection (when `std` enabled)
-- Blazing fast performance on as many targets as possible (currently only x86 and x86_64)
+- Blazing fast performance on as many targets as possible
+  - currently 32-bit and 64-bit x86 and Arm, and WASM
 - Default to scalar implementation when simd not available
 
 ## Quick start
