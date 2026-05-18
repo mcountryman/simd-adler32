@@ -46,6 +46,9 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             toolchain: stable
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            toolchain: stable
           - os: macos-26-intel
             target: x86_64-apple-darwin
             toolchain: stable
@@ -65,6 +68,9 @@ jobs:
             toolchain: nightly
           - os: macos-latest
             target: aarch64-apple-darwin
+            toolchain: nightly
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
             toolchain: nightly
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
@@ -119,13 +125,7 @@ jobs:
             target: arm-unknown-linux-gnueabi
             toolchain: stable
           - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            toolchain: stable
-          - os: ubuntu-latest
             target: arm-unknown-linux-gnueabi
-            toolchain: nightly
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
             toolchain: nightly
 
     steps:
