@@ -27,8 +27,9 @@ harness = false
 [features]
 default = ["std", "const-generics"]
 std = []
-nightly = []
-const-generics = []
+nightly = ["avx512"]
+const-generics = [] # Requires Rust 1.51 or later
+avx512 = [] # Requires Rust 1.89 or later
 
 [dev-dependencies]
 rand = { version = "0.8", features = ["small_rng"] }
