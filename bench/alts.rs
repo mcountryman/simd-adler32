@@ -10,8 +10,8 @@ pub fn bench(c: &mut Criterion) {
 
   SmallRng::from_entropy().fill_bytes(&mut data[..]);
 
-  bench_alt(&mut group, "adler", &data, |data| {
-    let mut adler = adler::Adler32::new();
+  bench_alt(&mut group, "adler2", &data, |data| {
+    let mut adler = adler2::Adler32::new();
 
     adler.write_slice(data);
     adler.checksum()
