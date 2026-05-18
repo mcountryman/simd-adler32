@@ -186,6 +186,8 @@ jobs:
           cargo miri setup
       - name: Run scalar tests under miri
         run: cargo +nightly miri test scalar
+      - name: Run neon tests under miri
+        run: cargo +nightly miri test --lib neon --target=aarch64-unknown-linux-gnu
       - name: Run sse2 tests under miri
         run: cargo +nightly miri test sse2
       - name: Run ssse3 tests under miri
