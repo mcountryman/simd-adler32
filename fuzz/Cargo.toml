@@ -31,6 +31,12 @@ doc = false
 test = false
 
 [[bin]]
+name = "neon"
+path = "targets/neon.rs"
+doc = false
+test = false
+
+[[bin]]
 name = "sse2"
 path = "targets/sse2.rs"
 doc = false
