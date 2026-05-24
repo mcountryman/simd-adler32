@@ -30,7 +30,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - run: cargo install cargo-deadlinks
       - name: doc
         env:
@@ -86,7 +86,7 @@ jobs:
           target: ${{ matrix.target }}
           toolchain: ${{ matrix.toolchain }}
           override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - run: ${{ matrix.deps }}
       - name: Maybe minimal versions
         if: ${{ matrix.variant == 'minimal_versions' }}
@@ -138,7 +138,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Install cross
         run: cargo install cross || true
       - name: Test
@@ -154,7 +154,7 @@ jobs:
         with:
           target: x86_64-unknown-linux-gnu
           toolchain: 1.36.0 # MSRV
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test --target=x86_64-unknown-linux-gnu --no-default-features --features=std
 
@@ -169,7 +169,7 @@ jobs:
           toolchain: nightly
           target: thumbv6m-none-eabi
           override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Build top-level only
         run: cargo build --target=thumbv6m-none-eabi --no-default-features
 
@@ -183,7 +183,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Install Miri
         run: |
           rustup toolchain install nightly --component miri
