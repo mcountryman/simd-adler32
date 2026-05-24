@@ -1,4 +1,5 @@
 name: build
+permissions: {}
 
 on:
   push:
@@ -7,6 +8,8 @@ on:
 
 jobs:
   clippy:
+    permissions:
+      checks: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -1,4 +1,5 @@
 name: fuzz
+permissions: {}
 
 on:
   schedule:
