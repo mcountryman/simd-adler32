@@ -9,7 +9,7 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v6
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -23,7 +23,7 @@ jobs:
   test-doc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -78,7 +78,7 @@ jobs:
             variant: minimal_versions
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -129,7 +129,7 @@ jobs:
             toolchain: nightly
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -148,7 +148,7 @@ jobs:
   test-msrv:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -161,7 +161,7 @@ jobs:
   test-no-std:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -176,7 +176,7 @@ jobs:
   test-miri:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
