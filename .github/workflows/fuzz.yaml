@@ -30,7 +30,6 @@ jobs:
           toolchain: nightly
           override: true
 
-      - uses: Swatinem/rust-cache@v1
       - run: cargo install cargo-fuzz
 
       - name: Download corpus artifact
