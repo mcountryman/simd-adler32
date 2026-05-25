@@ -2,6 +2,7 @@ name: fuzz
 permissions: {}
 
 on:
+  workflow_dispatch:
   schedule:
     # Run every 24h
     - cron: "0 0 * * *"
