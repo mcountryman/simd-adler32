@@ -1,4 +1,6 @@
 name: publish
+permissions:
+  contents: write
 
 on:
   push:
@@ -8,7 +10,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: Configure git user
         run: |
