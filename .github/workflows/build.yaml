@@ -127,6 +127,12 @@ jobs:
           - os: ubuntu-latest
             target: arm-unknown-linux-gnueabi
             toolchain: nightly
+          - os: ubuntu-latest
+            target: thumbv7neon-unknown-linux-gnueabihf
+            toolchain: stable
+          - os: ubuntu-latest
+            target: thumbv7neon-unknown-linux-gnueabihf
+            toolchain: nightly
 
     steps:
       - uses: actions/checkout@v2

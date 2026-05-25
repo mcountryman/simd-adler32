@@ -1,16 +1,16 @@
 use super::Adler32Imp;
 
-#[cfg(target_feature = "neon")]
+#[cfg(all(target_feature = "neon", any(target_arch = "aarch64", feature = "nightly")))]
 pub fn get_imp() -> Option<Adler32Imp> {
   Some(imp::update)
 }
 
-#[cfg(not(target_feature = "neon"))]
+#[cfg(not(all(target_feature = "neon", any(target_arch = "aarch64", feature = "nightly"))))]
 pub fn get_imp() -> Option<Adler32Imp> {
   None
 }
 
-#[cfg(target_feature = "neon")]
+#[cfg(all(target_feature = "neon", any(target_arch = "aarch64", feature = "nightly")))]
 mod imp {
   const MOD: u32 = 65521;
   const NMAX: usize = 5552;
