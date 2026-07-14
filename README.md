@@ -56,6 +56,8 @@ println!("{}", hash);
 | ✅   | `arm`, `aarch64` | neon    |
 | ✅   | `wasm32`         | simd128 |
 
+AVX512 support requires at least rustc `1.89`. To enable AVX512 support add the `avx512` feature.
+
 **MSRV** `1.36.0`\*\*
 
 Minimum supported rust version is tested before a new version is published. [**] Feature

@@ -1,6 +1,6 @@
 use super::Adler32Imp;
 
-/// Resolves update implementation if CPU supports avx512f and avx512bw instructions.
+/// Resolves update implementation if CPU supports avx512bw instructions.
 pub fn get_imp() -> Option<Adler32Imp> {
   get_imp_inner()
 }
@@ -8,14 +8,11 @@ pub fn get_imp() -> Option<Adler32Imp> {
 #[inline]
 #[cfg(all(
   feature = "std",
-  feature = "nightly",
+  feature = "avx512",
   any(target_arch = "x86", target_arch = "x86_64")
 ))]
 fn get_imp_inner() -> Option<Adler32Imp> {
-  let has_avx512f = std::is_x86_feature_detected!("avx512f");
-  let has_avx512bw = std::is_x86_feature_detected!("avx512bw");
-
-  if has_avx512f && has_avx512bw {
+  if std::is_x86_feature_detected!("avx512bw") {
     Some(imp::update)
   } else {
     None
@@ -24,8 +21,8 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 
 #[inline]
 #[cfg(all(
-  feature = "nightly",
-  all(target_feature = "avx512f", target_feature = "avx512bw"),
+  feature = "avx512",
+  target_feature = "avx512bw",
   not(all(feature = "std", any(target_arch = "x86", target_arch = "x86_64")))
 ))]
 fn get_imp_inner() -> Option<Adler32Imp> {
@@ -34,10 +31,10 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 
 #[inline]
 #[cfg(all(
-  not(all(feature = "nightly", target_feature = "avx512f", target_feature = "avx512bw")),
+  not(all(feature = "avx512", target_feature = "avx512bw")),
   not(all(
     feature = "std",
-    feature = "nightly",
+    feature = "avx512",
     any(target_arch = "x86", target_arch = "x86_64")
   ))
 ))]
@@ -46,12 +43,9 @@ fn get_imp_inner() -> Option<Adler32Imp> {
 }
 
 #[cfg(all(
-  feature = "nightly",
+  feature = "avx512",
   any(target_arch = "x86", target_arch = "x86_64"),
-  any(
-    feature = "std",
-    all(target_feature = "avx512f", target_feature = "avx512bw")
-  )
+  any(feature = "std", target_feature = "avx512bw")
 ))]
 mod imp {
   const MOD: u32 = 65521;
@@ -69,7 +63,6 @@ mod imp {
   }
 
   #[inline]
-  #[target_feature(enable = "avx512f")]
   #[target_feature(enable = "avx512bw")]
   unsafe fn update_imp(a: u16, b: u16, data: &[u8]) -> (u16, u16) {
     let mut a = a as u32;
