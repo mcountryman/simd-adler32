@@ -1,23 +1,23 @@
 use super::Adler32Imp;
 
-#[cfg(all(target_feature = "neon", any(target_arch = "aarch64", feature = "nightly")))]
+#[cfg(all(target_feature = "neon", any(target_arch = "aarch64", target_arch = "arm64ec", feature = "nightly")))]
 pub fn get_imp() -> Option<Adler32Imp> {
   Some(imp::update)
 }
 
-#[cfg(not(all(target_feature = "neon", any(target_arch = "aarch64", feature = "nightly"))))]
+#[cfg(not(all(target_feature = "neon", any(target_arch = "aarch64", target_arch = "arm64ec", feature = "nightly"))))]
 pub fn get_imp() -> Option<Adler32Imp> {
   None
 }
 
-#[cfg(all(target_feature = "neon", any(target_arch = "aarch64", feature = "nightly")))]
+#[cfg(all(target_feature = "neon", any(target_arch = "aarch64", target_arch = "arm64ec", feature = "nightly")))]
 mod imp {
   const MOD: u32 = 65521;
   const NMAX: usize = 5552;
   const BLOCK_SIZE: usize = 32;
   const CHUNK_SIZE: usize = NMAX / BLOCK_SIZE * BLOCK_SIZE;
 
-  #[cfg(target_arch = "aarch64")]
+  #[cfg(any(target_arch = "aarch64", target_arch = "arm64ec"))]
   use core::arch::aarch64::*;
   #[cfg(target_arch = "arm")]
   use core::arch::arm::*;
